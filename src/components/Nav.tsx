@@ -17,13 +17,14 @@ export default function Nav() {
 
   // The active section is the one crossing the middle of the viewport.
   useEffect(() => {
-    const sections = items
-      .map((n) => document.getElementById(n.id))
+    // The hero (#top) is observed too, so scrolling back up clears the highlight.
+    const sections = ['top', ...items.map((n) => n.id)]
+      .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null)
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) setActive(entry.target.id)
+          if (entry.isIntersecting) setActive(entry.target.id === 'top' ? null : entry.target.id)
         }
       },
       { rootMargin: '-45% 0px -50% 0px' },

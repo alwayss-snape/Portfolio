@@ -38,7 +38,7 @@ The full spec is `PORTFOLIO_BUILD_BRIEF.md`. Read it before any milestone work; 
 
 1. Scaffold, tokens, fonts, content model, deploy workflow; "hello" page to confirm base path. ← **done**
 2. All sections as static, responsive DOM; poster image as hero. ← **done**
-3. `CycleRing` with scroll-linked draw-in and list sync.
+3. `CycleRing` with scroll-linked draw-in and list sync. ← **done**
 4. `ForestScene`: fog, trees, ring, interaction, poster cross-fade, fallbacks.
 5. Resume pipeline (`scripts/resume-to-images.sh`) and viewer; confirm no PDF in git history.
 6. Polish: OG image, Lighthouse pass, cross-browser check.

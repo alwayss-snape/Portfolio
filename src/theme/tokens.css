@@ -1,0 +1,59 @@
+/*
+ * Theme "Overcast" — the single source of truth for colours and fonts.
+ * Change the palette or type here; components only reference these tokens.
+ */
+
+/* Self-hosted fonts (latin subset only; covers é in "résumé"). */
+@import '@fontsource/instrument-serif/latin-400.css';
+@import '@fontsource/instrument-serif/latin-400-italic.css';
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+
+:root {
+  /* Palette */
+  --fog: #d6dad2;        /* page background, scene fog colour */
+  --fog-2: #e2e5de;      /* raised surfaces, nav bar after scroll */
+  --ink: #1d2320;        /* headlines, primary text */
+  --ink-2: #3c463f;      /* body text */
+  --moss: #4a5a4e;       /* past-cycle arcs, secondary labels */
+  --muted: #6b766d;      /* captions, year labels */
+  --hairline: #b4bbb1;   /* dividers, the base ring */
+  --rust: #a4492a;       /* the single accent */
+  --rust-light: #f0915f; /* accent over the dark forest imagery */
+  --on-scene: #f1f3ee;   /* nav and links over the 3D scene */
+
+  /* Font stacks */
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale (desktop; hero clamps down on mobile) */
+  --text-hero: clamp(52px, 11vw, 124px);
+  --leading-hero: 0.96;
+  --text-section: clamp(56px, 9vw, 104px);
+  --text-company: clamp(36px, 5vw, 52px);
+  --text-body: 16px;
+  --text-label: 12px;
+  --tracking-label: 2.5px;
+  --tracking-kicker: 3px;
+}
+
+/* Expose tokens to Tailwind v4 utilities (bg-fog, text-ink, font-serif, ...). */
+@theme inline {
+  --color-fog: var(--fog);
+  --color-fog-2: var(--fog-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-moss: var(--moss);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+  --color-rust: var(--rust);
+  --color-rust-light: var(--rust-light);
+  --color-on-scene: var(--on-scene);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}

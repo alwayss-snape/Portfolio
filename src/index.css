@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+@import './theme/tokens.css';
+
+@layer base {
+  html {
+    background: var(--fog);
+    color: var(--ink-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 3px;
+  }
+}
+
+@utility label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}

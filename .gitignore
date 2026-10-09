@@ -1,0 +1,12 @@
+# Never commit a resume PDF (brief §2)
+*.pdf
+
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+.env*.local
+*.log
+
+# Local build brief (mentions the mood reference; must not be published)
+PORTFOLIO_BUILD_BRIEF.md

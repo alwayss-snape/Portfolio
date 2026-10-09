@@ -6,6 +6,7 @@ export type ResumePage = { webp: string; png: string; width: number; height: num
 export const resumeIntro = {
   label: '04 / Résumé',
   title: 'Résumé',
+  watermark: 'kshitijchaubey.github.io',
 }
 
 export const resumePages: ResumePage[] = [

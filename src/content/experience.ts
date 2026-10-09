@@ -23,6 +23,9 @@ export const cyclesIntro = {
   title: 'Cycles',
   sub: 'Twelve years on one loop. Scroll turns the ring; the current cycle stays in the light.',
   centre: { value: '4.5 yrs', caption: 'Three cycles · One loop' },
+  cyclePrefix: 'Cycle',
+  currentTag: 'Current',
+  ringLabel: 'Timeline from 2018 to 2029 showing education and two roles as arcs on a ring',
 }
 
 // The ring spans 12 years, starting at 12 o'clock and running clockwise.

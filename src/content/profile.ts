@@ -5,12 +5,15 @@ export const profile = {
   designation: 'Data Scientist & ML Engineer',
   location: 'Bengaluru',
   wordmark: 'K—C',
+  skipLink: 'Skip to content',
+  footer: '© 2026 Kshitij Chaubey · Bengaluru',
 
   hero: {
     kicker: 'Kshitij Chaubey · Data Scientist & ML Engineer · Bengaluru',
     headline: ['Every model', 'comes back around.'] as const, // second line renders italic
     sub: 'Train, deploy, observe, retrain. I build machine learning systems that close their own loop.',
     meta: 'cycle 03 · 2026 · scroll ↓',
+    poster: 'hero-poster.webp', // static frame of the scene, relative to public/
   },
 
   about: {

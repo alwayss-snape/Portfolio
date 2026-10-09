@@ -57,3 +57,10 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
+
+:root {
+  /* Derived surfaces */
+  --nav-bar: color-mix(in srgb, var(--fog-2) 85%, transparent);
+  --scene-scrim: color-mix(in srgb, var(--ink) 38%, transparent); /* behind nav over the hero */
+  --rust-glow: color-mix(in srgb, var(--rust) 22%, transparent);
+}

@@ -13,7 +13,8 @@ export const profile = {
     headline: ['Every model', 'comes back around.'] as const, // second line renders italic
     sub: 'Train, deploy, observe, retrain. I build machine learning systems that close their own loop.',
     meta: 'cycle 03 · 2026 · scroll ↓',
-    poster: 'hero-poster.webp', // static frame of the scene, relative to public/
+    poster: 'hero-poster.webp', // static frame with the painted ring (LCP + reduced-motion fallback)
+    backdrop: 'hero-backdrop.webp', // same photo without the ring; the live WebGL ring sits on it
   },
 
   about: {

@@ -40,7 +40,7 @@ The full spec is `PORTFOLIO_BUILD_BRIEF.md`. Read it before any milestone work; 
 2. All sections as static, responsive DOM; poster image as hero. ← **done**
 3. `CycleRing` with scroll-linked draw-in and list sync. ← **done**
 4. `ForestScene` — **hybrid** (decided 2026-10-10, overrides brief §5.2): photo backdrop (`public/hero-backdrop.webp`, ring removed) + live WebGL ring, rain, fog banks, pointer/scroll parallax, poster cross-fade, fallbacks. No procedural trees. ← **done**
-5. Resume pipeline (`scripts/resume-to-images.sh`) and viewer; confirm no PDF in git history.
+5. Resume pipeline (`scripts/resume-to-images.sh`, needs poppler/imagemagick/webp) and viewer + lightbox; no PDF in git history. ← **done (local), awaiting review**
 6. Polish: OG image, Lighthouse pass, cross-browser check.
 
 Work one milestone at a time. Stop after each, show the result, and wait for Kshitij before continuing.

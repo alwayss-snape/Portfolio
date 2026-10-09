@@ -1,8 +1,16 @@
-import { useCallback, useRef, useState } from 'react'
-import { LazyMotion, domAnimation, useMotionValue, useReducedMotion, useScroll, useTransform } from 'motion/react'
+import { createRef, useCallback, useRef, useState, type RefObject } from 'react'
+import {
+  LazyMotion,
+  domAnimation,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from 'motion/react'
 import { cyclesIntro, experience } from '../content/experience'
 import Container from '../components/Container'
-import CycleRing, { SWEEP_FROM, SWEEP_TO } from '../components/CycleRing'
+import CycleRing, { SWEEP_FROM, SWEEP_TO, arcProgressAt } from '../components/CycleRing'
 import SectionHeader from '../components/SectionHeader'
 import { useMediaQuery } from '../lib/useMediaQuery'
 
@@ -12,31 +20,51 @@ const roles = [...experience].reverse()
 export default function Cycles() {
   const sectionRef = useRef<HTMLElement>(null)
   const ringRef = useRef<HTMLDivElement>(null)
+  const entryRefs = useRef(
+    Object.fromEntries(experience.map((c) => [c.id, createRef<HTMLLIElement>()])) as Record<string, RefObject<HTMLLIElement | null>>,
+  )
   const reduceMotion = useReducedMotion() ?? false
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const isMobile = !useMediaQuery('(min-width: 768px)')
 
-  // Desktop: the ring is sticky, so the draw-in tracks the whole section.
-  // Below that, the ring scrolls past on its own, so it tracks the ring.
-  const { scrollYProgress: sectionDraw } = useScroll({ target: sectionRef, offset: ['start 0.6', 'end end'] })
+  // Desktop: the ring is sticky beside the list, so each arc draws while its
+  // role passes the reading line — you read Albertsons, its arc draws.
+  // `experience` is a module constant, so this hook loop has a fixed length.
+  const entryProgress: Record<string, MotionValue<number>> = {}
+  for (const c of experience) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    entryProgress[c.id] = useScroll({
+      target: entryRefs.current[c.id],
+      offset: ['start 0.7', 'end 0.45'],
+    }).scrollYProgress
+  }
+
+  // Smaller screens: the ring sits above the list, so one sweep runs back in
+  // time (today → 2018) as the ring itself scrolls through view.
   const { scrollYProgress: ringDraw } = useScroll({ target: ringRef, offset: ['start 0.9', 'end 0.45'] })
+  const sweep = useTransform(ringDraw, (p) => SWEEP_TO - p * (SWEEP_TO - SWEEP_FROM))
+  const sweepProgress: Record<string, MotionValue<number>> = {}
+  for (const c of experience) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    sweepProgress[c.id] = useTransform(sweep, (v) => arcProgressAt(c, v))
+  }
+
+  // Reduced motion: fully drawn and still.
+  const full = useMotionValue(1)
+  const progress = Object.fromEntries(
+    experience.map((c) => [c.id, reduceMotion ? full : isDesktop ? entryProgress[c.id] : sweepProgress[c.id]]),
+  )
+
   const { scrollYProgress: sectionPass } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
-
-  const toSweep = (p: number) => SWEEP_FROM + p * (SWEEP_TO - SWEEP_FROM)
-  const sectionSweep = useTransform(sectionDraw, toSweep)
-  const ringSweep = useTransform(ringDraw, toSweep)
   const scrollRotate = useTransform(sectionPass, [0, 1], [0, -30])
-  // Reduced motion: fully drawn, never turning. Phones: draw-in only.
-  const fullSweep = useMotionValue(SWEEP_TO)
   const noRotate = useMotionValue(0)
-
-  const sweep = reduceMotion ? fullSweep : isDesktop ? sectionSweep : ringSweep
   const rotate = reduceMotion || isMobile ? noRotate : scrollRotate
 
   const [hovered, setHovered] = useState<string | null>(null)
-  const [drawn, setDrawn] = useState<Record<string, boolean>>({})
-  const onDrawn = useCallback((id: string, isDrawn: boolean) => {
-    setDrawn((prev) => (prev[id] === isDrawn ? prev : { ...prev, [id]: isDrawn }))
+  // The role whose arc is mid-draw is tinted, so list and ring move together.
+  const [drawing, setDrawing] = useState<string | null>(null)
+  const onDrawing = useCallback((id: string, isDrawing: boolean) => {
+    setDrawing((prev) => (isDrawing ? id : prev === id ? null : prev))
   }, [])
 
   return (
@@ -55,20 +83,19 @@ export default function Cycles() {
               ref={ringRef}
               className="mx-auto w-[90vw] max-w-[660px] px-6 sm:w-full lg:sticky lg:top-24 lg:self-start lg:px-8"
             >
-              <CycleRing sweep={sweep} rotate={rotate} hovered={hovered} onHover={setHovered} onDrawn={onDrawn} />
+              <CycleRing progress={progress} rotate={rotate} hovered={hovered} onHover={setHovered} onDrawing={onDrawing} />
             </div>
 
             <ol className="divide-y divide-hairline border-y border-hairline">
               {roles.map((c) => {
-                const visible = reduceMotion || drawn[c.id]
+                const lit = hovered === c.id || (!hovered && drawing === c.id)
                 return (
                   <li
                     key={c.id}
+                    ref={entryRefs.current[c.id]}
                     onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(c.id)}
                     onPointerLeave={() => setHovered(null)}
-                    className={`py-8 transition-opacity duration-700 ${
-                      !visible ? 'opacity-40' : hovered && hovered !== c.id ? 'opacity-60' : 'opacity-100'
-                    }`}
+                    className="py-8"
                   >
                     <p className={`label ${c.current ? 'text-rust' : 'text-moss'}`}>
                       {cyclesIntro.cyclePrefix} {c.number} · {c.dates}
@@ -76,8 +103,8 @@ export default function Cycles() {
                     </p>
                     <h3
                       className={`mt-3 font-serif font-normal leading-none transition-colors ${
-                        hovered === c.id ? (c.current ? 'text-rust' : 'text-moss') : 'text-ink'
-                      }`}
+                        lit ? (c.current ? 'text-rust' : 'text-moss') : 'text-ink'
+                      } duration-500`}
                       style={{ fontSize: 'var(--text-company)' }}
                     >
                       {c.company}

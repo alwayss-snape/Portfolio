@@ -14,7 +14,8 @@ const NOW: YearMonth = { year: today.getFullYear(), month: today.getMonth() + 1 
 const frac = ({ year, month }: YearMonth) => (year - ringSpan.start + (month - 1) / 12) / SPAN_YEARS
 const endOf = (c: Cycle) => frac(c.end === 'now' ? NOW : c.end)
 
-// The sweep runs from the first cycle's start to the last cycle's end.
+// The sweep runs backwards in time, from today to the first cycle's start,
+// so the ring draws in the same order the list reads (newest first).
 export const SWEEP_FROM = Math.min(...experience.map((c) => frac(c.start)))
 export const SWEEP_TO = Math.max(...experience.map(endOf))
 
@@ -23,11 +24,13 @@ const point = (f: number, r: number) => {
   return { x: C + r * Math.cos(a), y: C + r * Math.sin(a) }
 }
 
+// Drawn from the later date back to the earlier one (anticlockwise), so
+// pathLength reveals each arc starting at its end date.
 const arcPath = (f0: number, f1: number, r = R) => {
   const p0 = point(f0, r)
   const p1 = point(f1, r)
   const large = f1 - f0 > 0.5 ? 1 : 0
-  return `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`
+  return `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${p0.x.toFixed(2)} ${p0.y.toFixed(2)}`
 }
 
 const arcStyle = (c: Cycle) =>
@@ -39,15 +42,22 @@ const arcStyle = (c: Cycle) =>
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
+// How far an arc is drawn when a single sweep runs back in time across the ring.
+export const arcProgressAt = (c: Cycle, sweep: number) => {
+  const f0 = frac(c.start)
+  const f1 = endOf(c)
+  return clamp01((f1 - sweep) / (f1 - f0))
+}
+
 type Props = {
-  sweep: MotionValue<number> // current position on the ring, SWEEP_FROM → SWEEP_TO
+  progress: Record<string, MotionValue<number>> // per cycle id, 0 → 1 drawn
   rotate: MotionValue<number> // degrees
   hovered: string | null
   onHover: (id: string | null) => void
-  onDrawn: (id: string, drawn: boolean) => void
+  onDrawing: (id: string, drawing: boolean) => void
 }
 
-export default function CycleRing({ sweep, rotate, hovered, onHover, onDrawn }: Props) {
+export default function CycleRing({ progress, rotate, hovered, onHover, onDrawing }: Props) {
   const years = Array.from({ length: SPAN_YEARS }, (_, i) => ringSpan.start + i)
   const counterRotate = useTransform(rotate, (r) => -r)
 
@@ -89,11 +99,11 @@ export default function CycleRing({ sweep, rotate, hovered, onHover, onDrawn }: 
           <Arc
             key={c.id}
             cycle={c}
-            sweep={sweep}
+            progress={progress[c.id]}
             dimmed={hovered !== null && hovered !== c.id}
             highlighted={hovered === c.id}
             onHover={onHover}
-            onDrawn={onDrawn}
+            onDrawing={onDrawing}
           />
         ))}
       </m.svg>
@@ -111,14 +121,14 @@ export default function CycleRing({ sweep, rotate, hovered, onHover, onDrawn }: 
 
 type ArcProps = {
   cycle: Cycle
-  sweep: MotionValue<number>
+  progress: MotionValue<number>
   dimmed: boolean
   highlighted: boolean
   onHover: (id: string | null) => void
-  onDrawn: (id: string, drawn: boolean) => void
+  onDrawing: (id: string, drawing: boolean) => void
 }
 
-function Arc({ cycle: c, sweep, dimmed, highlighted, onHover, onDrawn }: ArcProps) {
+function Arc({ cycle: c, progress, dimmed, highlighted, onHover, onDrawing }: ArcProps) {
   const maskId = useId()
   const f0 = frac(c.start)
   const f1 = endOf(c)
@@ -126,11 +136,11 @@ function Arc({ cycle: c, sweep, dimmed, highlighted, onHover, onDrawn }: ArcProp
   const s = arcStyle(c)
   const end = point(f1, R)
 
-  const progress = useTransform(sweep, (v) => clamp01((v - f0) / (f1 - f0)))
-  const endOpacity = useTransform(progress, [0.97, 1], [0, 1])
+  // The "now" dot marks where the sweep begins, so it appears first.
+  const endOpacity = useTransform(progress, [0, 0.04], [0, 1])
   // A round cap at pathLength 0 still paints a dot, so hide the arc until it starts.
   const started = useTransform(progress, (p) => (p > 0 ? 1 : 0))
-  useMotionValueEvent(progress, 'change', (p) => onDrawn(c.id, p >= 1))
+  useMotionValueEvent(progress, 'change', (p) => onDrawing(c.id, p > 0 && p < 1))
 
   const width = s.width + (highlighted ? 3 : 0)
   const common = {
@@ -162,7 +172,7 @@ function Arc({ cycle: c, sweep, dimmed, highlighted, onHover, onDrawn }: ArcProp
         const a = point(mf, R - 12)
         const b = point(mf, R + 12)
         return (
-          <Milestone key={ms.label} progress={progress} at={(mf - f0) / (f1 - f0)} a={a} b={b} label={ms.label} />
+          <Milestone key={ms.label} progress={progress} at={(f1 - mf) / (f1 - f0)} a={a} b={b} label={ms.label} />
         )
       })}
 

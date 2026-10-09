@@ -10,3 +10,6 @@ dist/
 
 # Local build brief (mentions the mood reference; must not be published)
 PORTFOLIO_BUILD_BRIEF.md
+
+# Local preview config
+.claude/launch.json

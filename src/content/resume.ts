@@ -4,7 +4,7 @@
 export type ResumePage = { webp: string; png: string; width: number; height: number }
 
 export const resumeIntro = {
-  label: '04 / Résumé',
+  label: '05 / Résumé',
   title: 'Résumé',
   open: (page: number, total: number) => `View résumé page ${page} of ${total} full size`,
   close: 'Close',

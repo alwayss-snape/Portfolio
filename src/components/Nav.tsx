@@ -53,7 +53,7 @@ export default function Nav() {
         <a href="#top" className={`tracking-[2px] ${scrolled ? 'text-ink' : 'text-on-scene'}`}>
           {profile.wordmark}
         </a>
-        <ul className="flex gap-3 lowercase sm:gap-8">
+        <ul className="flex gap-3 lowercase sm:gap-5 lg:gap-8">
           {items.map((n) => {
             const isActive = active === n.id
             const isContact = n.id === 'contact'
@@ -65,7 +65,7 @@ export default function Nav() {
                 ? 'text-rust-light'
                 : 'text-on-scene hover:text-rust-light'
             return (
-              <li key={n.id}>
+              <li key={n.id} className={n.wide ? 'max-sm:hidden' : undefined}>
                 <a
                   href={`#${n.id}`}
                   aria-current={isActive ? 'location' : undefined}

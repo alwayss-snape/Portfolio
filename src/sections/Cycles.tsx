@@ -69,13 +69,13 @@ export default function Cycles() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-      <section ref={sectionRef} id="cycles" aria-labelledby="cycles-title" className="scroll-mt-16 py-24 sm:py-32">
+      <section ref={sectionRef} id="experience" aria-labelledby="experience-title" className="scroll-mt-16 py-24 sm:py-32">
         <Container>
           <SectionHeader
             label={cyclesIntro.label}
             title={cyclesIntro.title}
             sub={cyclesIntro.sub}
-            headingId="cycles-title"
+            headingId="experience-title"
           />
 
           <div className="mt-16 grid gap-16 lg:grid-cols-[minmax(0,660px)_minmax(0,1fr)] lg:gap-20">

@@ -12,7 +12,7 @@ export const profile = {
     kicker: 'Kshitij Chaubey · Data Scientist & ML Engineer · Bengaluru',
     headline: ['Every model', 'comes back around.'] as const, // second line renders italic
     sub: 'Train, deploy, observe, retrain. I build machine learning systems that close their own loop.',
-    meta: 'cycle 03 · 2026 · scroll ↓',
+    meta: 'cycle 02 · 2026 · scroll ↓',
     poster: 'hero-poster.webp', // static frame with the painted ring (LCP + reduced-motion fallback)
     backdrop: 'hero-backdrop.webp', // same photo without the ring; the live WebGL ring sits on it
   },
@@ -30,14 +30,17 @@ export type NavItem = {
   id: string // section anchor
   label: string
   hidden?: boolean
+  wide?: boolean // only shown from the sm breakpoint up, so the bar fits a phone
 }
 
 // Order matches the page. `projects` is reserved for later and hidden in v1.
 export const nav: NavItem[] = [
   { id: 'about', label: 'about' },
-  { id: 'cycles', label: 'cycles' },
+  { id: 'experience', label: 'work' },
   { id: 'stack', label: 'stack' },
+  { id: 'certifications', label: 'certs', wide: true },
   { id: 'projects', label: 'projects', hidden: true },
   { id: 'resume', label: 'résumé' },
+  { id: 'education', label: 'education', wide: true },
   { id: 'contact', label: 'contact' },
 ]

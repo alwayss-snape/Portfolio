@@ -4,7 +4,9 @@ import Hero from './sections/Hero'
 import About from './sections/About'
 import Cycles from './sections/Cycles'
 import Stack from './sections/Stack'
+import Certifications from './sections/Certifications'
 import Resume from './sections/Resume'
+import Education from './sections/Education'
 import Contact from './sections/Contact'
 import Container from './components/Container'
 
@@ -23,7 +25,9 @@ export default function App() {
         <About />
         <Cycles />
         <Stack />
+        <Certifications />
         <Resume />
+        <Education />
         <Contact />
       </main>
       <footer className="border-t border-hairline py-8">

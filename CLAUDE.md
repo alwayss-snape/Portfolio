@@ -23,7 +23,7 @@ The full spec is `PORTFOLIO_BUILD_BRIEF.md`. Read it before any milestone work; 
 ## Where things live
 
 - **All colours and fonts:** `src/theme/tokens.css` (single source of truth; no hard-coded hex values in components, except the 3D scene's material colours which should mirror the tokens).
-- **All copy:** `src/content/` (`profile.ts`, `experience.ts`, `stack.ts`, `links.ts`, `resume.ts`). Components never contain copy.
+- **All copy:** `src/content/` (`profile.ts`, `experience.ts`, `stack.ts`, `certifications.ts`, `education.ts`, `links.ts`, `resume.ts`). Components never contain copy.
 - Sections: `src/sections/`; shared components: `src/components/`; 3D: `src/three/`.
 - `projects` exists in the content model and nav but is hidden in v1.
 

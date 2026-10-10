@@ -36,9 +36,7 @@ const arcPath = (f0: number, f1: number, r = R) => {
 const arcStyle = (c: Cycle) =>
   c.current
     ? { className: 'stroke-rust', width: 10, dash: undefined }
-    : c.kind === 'education'
-      ? { className: 'stroke-muted', width: 6, dash: '4 7' }
-      : { className: 'stroke-moss', width: 8, dash: undefined }
+    : { className: 'stroke-moss', width: 8, dash: undefined }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 

@@ -9,12 +9,23 @@ export const profile = {
   footer: '© 2026 Kshitij Chaubey · Bengaluru',
 
   hero: {
-    kicker: 'Kshitij Chaubey · Data Scientist & ML Engineer · Bengaluru',
-    headline: ['Every model', 'comes back around.'] as const, // second line renders italic
-    sub: 'Train, deploy, observe, retrain. I build machine learning systems that close their own loop.',
-    meta: 'cycle 02 · 2026 · scroll ↓',
-    poster: 'hero-poster.webp', // static frame with the painted ring (LCP + reduced-motion fallback)
-    backdrop: 'hero-backdrop.webp', // same photo without the ring; the live WebGL ring sits on it
+    now: { tag: 'Now', text: 'Advanced ML Engineer at Albertsons Companies · Bengaluru' },
+    name: ['Kshitij', 'Chaubey'] as const, // second line renders italic
+    claim:
+      'I build machine learning that moves real business numbers: measuring whether ads actually drive sales, and choosing the next best action for 35 million households.',
+    ctas: [
+      { label: 'See my work', href: '#experience', primary: true },
+      { label: 'Résumé', href: '#resume', primary: false },
+      { label: 'Get in touch', href: '#contact', primary: false },
+    ],
+    stats: [
+      { value: '35M', label: 'households scored on 8 business actions' },
+      { value: '4.6B', label: 'transaction rows engineered in PySpark' },
+      { value: '90%', label: 'of high-risk insurance cases auto-routed' },
+      { value: '4.5 yrs', label: 'across retail, loyalty, finance & insurance' },
+    ],
+    // Caption for the 3D point cloud beside the name.
+    sceneCaption: 'Each point is a household, clustered by its next best action',
   },
 
   about: {

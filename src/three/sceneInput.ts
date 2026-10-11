@@ -3,7 +3,6 @@
 export const sceneInput = {
   pointer: { x: 0, y: 0 }, // -1..1, centre = 0
   scroll: 0, // 0 at top of hero → 1 when the hero has scrolled away
-  autoDrift: false, // phones: no pointer parallax, slow drift instead
 }
 
 // Scene colours mirror the CSS tokens so tokens.css stays the single source.

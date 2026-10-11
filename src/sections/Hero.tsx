@@ -1,11 +1,10 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 import { profile } from '../content/profile'
-import { asset } from '../lib/asset'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { sceneInput } from '../three/sceneInput'
 
-const ForestScene = lazy(() => import('../three/ForestScene'))
+const DataScene = lazy(() => import('../three/DataScene'))
 
 const { hero } = profile
 
@@ -18,9 +17,9 @@ const hasWebGL = () => {
   }
 }
 
-// The poster (with its painted ring) is the LCP image and the reduced-motion
-// fallback. When the live scene has drawn, the poster fades away, revealing
-// the ring-free photo with the WebGL ring and rain over it.
+// Name first: the identity block is plain DOM (and the LCP), the 3D point
+// cloud loads after idle and fades in beside it. Without WebGL the hero is
+// simply the text on fog.
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion() ?? false
@@ -31,7 +30,7 @@ export default function Hero() {
 
   // Load the 3D chunk only after the page is idle, so it never competes with the LCP.
   useEffect(() => {
-    if (reduceMotion || !hasWebGL()) return
+    if (!hasWebGL()) return
     const start = () => setMountScene(true)
     if ('requestIdleCallback' in window) {
       const id = requestIdleCallback(start, { timeout: 1500 })
@@ -39,34 +38,20 @@ export default function Hero() {
     }
     const id = setTimeout(start, 300)
     return () => clearTimeout(id)
-  }, [reduceMotion])
+  }, [])
 
-  // Pointer, scroll and visibility feed the scene and the DOM parallax.
+  // Pointer, scroll and visibility feed the scene.
   useEffect(() => {
-    if (!mountScene) return
+    if (!mountScene || reduceMotion) return
     const el = sectionRef.current
     if (!el) return
-    sceneInput.autoDrift = mobile
-
-    let frame = 0
-    const write = () => {
-      frame = 0
-      el.style.setProperty('--px', sceneInput.pointer.x.toFixed(3))
-      el.style.setProperty('--py', sceneInput.pointer.y.toFixed(3))
-      el.style.setProperty('--scroll', sceneInput.scroll.toFixed(3))
-    }
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(write)
-    }
     const onPointer = (e: PointerEvent) => {
-      if (mobile || e.pointerType !== 'mouse') return
+      if (e.pointerType !== 'mouse') return
       sceneInput.pointer.x = (e.clientX / innerWidth) * 2 - 1
       sceneInput.pointer.y = (e.clientY / innerHeight) * 2 - 1
-      schedule()
     }
     const onScroll = () => {
       sceneInput.scroll = Math.min(1, Math.max(0, scrollY / el.offsetHeight))
-      schedule()
     }
     onScroll()
 
@@ -82,13 +67,12 @@ export default function Hero() {
     window.addEventListener('scroll', onScroll, { passive: true })
     document.addEventListener('visibilitychange', sync)
     return () => {
-      cancelAnimationFrame(frame)
       io.disconnect()
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('scroll', onScroll)
       document.removeEventListener('visibilitychange', sync)
     }
-  }, [mountScene, mobile])
+  }, [mountScene, reduceMotion])
 
   const onReady = useCallback(() => setLive(true), [])
 
@@ -97,59 +81,78 @@ export default function Hero() {
       ref={sectionRef}
       id="top"
       aria-label="Introduction"
-      className="hero relative h-svh min-h-[560px] overflow-hidden bg-fog"
+      className="hero relative flex min-h-svh flex-col overflow-hidden bg-fog"
     >
       {mountScene && (
-        <>
-          <img src={asset(hero.backdrop)} alt="" decoding="async" className="hero-backdrop absolute inset-0 h-full w-full object-cover object-[68%_center]" />
-          <Suspense fallback={null}>
-            <ForestScene active={active} mobile={mobile} onReady={onReady} />
-          </Suspense>
-        </>
-      )}
-
-      <img
-        src={asset(hero.poster)}
-        alt=""
-        fetchPriority="high"
-        decoding="async"
-        className={`absolute inset-0 h-full w-full object-cover object-[68%_center] transition-opacity duration-[1400ms] ease-out ${
-          live ? 'opacity-0' : 'opacity-100'
-        }`}
-      />
-
-      {/* Drifting fog banks in front of the ring, and haze that thickens on the way out. */}
-      {mountScene && (
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="fog-bank fog-bank-a" />
-          <div className="fog-bank fog-bank-b" />
-          <div className="hero-haze absolute inset-0 bg-fog" />
-        </div>
-      )}
-
-      {/* Scene dissolves into the page. */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-b from-transparent via-[color-mix(in_srgb,var(--fog)_88%,transparent)] via-45% to-fog md:h-[40%] md:via-70%"
-      />
-
-      <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-4 pb-10 sm:px-8 sm:pb-14 lg:px-16">
-        <p className="font-mono text-[11px] uppercase tracking-[var(--tracking-kicker)] text-ink sm:text-[12px]">
-          {hero.kicker}
-        </p>
-        <h1
-          className="mt-5 font-serif font-normal text-ink"
-          style={{ fontSize: 'var(--text-hero)', lineHeight: 'var(--leading-hero)' }}
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-0 transition-opacity duration-[1200ms] ease-out ${
+            live ? 'opacity-100' : 'opacity-0'
+          }`}
         >
-          {hero.headline[0]}
-          <br />
-          <em>{hero.headline[1]}</em>
-        </h1>
-        <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <p className="max-w-[520px] text-[15px] leading-relaxed text-ink-2 sm:text-[16px]">{hero.sub}</p>
-          <p className="font-mono text-[12px] tracking-[1px] text-muted">{hero.meta}</p>
+          <Suspense fallback={null}>
+            <DataScene active={active} mobile={mobile} still={reduceMotion} onReady={onReady} />
+          </Suspense>
         </div>
+      )}
+
+      <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 pb-8 pt-[43svh] sm:px-8 md:pt-28 lg:px-16 lg:pb-12">
+        <div className="md:my-auto md:max-w-[640px]">
+          <p className="font-mono text-[12px] tracking-[1px] text-ink-2 sm:text-[13px]">
+            <span aria-hidden className="mr-2.5 inline-block size-2 rounded-full bg-rust align-middle shadow-[0_0_0_4px_var(--rust-glow)]" />
+            <span className="font-medium text-ink">{hero.now.tag}</span> · {hero.now.text}
+          </p>
+          <h1
+            className="mt-6 font-serif font-normal text-ink"
+            style={{ fontSize: 'var(--text-hero)', lineHeight: 'var(--leading-hero)', letterSpacing: '-0.02em' }}
+          >
+            {hero.name[0]}
+            <br />
+            <em>{hero.name[1]}</em>
+          </h1>
+          <p className="mt-6 flex items-center gap-4 font-medium text-ink" style={{ fontSize: 'var(--text-designation)' }}>
+            <span aria-hidden className="h-0.5 w-8 shrink-0 bg-rust sm:w-11" />
+            {profile.designation}
+          </p>
+          <p className="mt-5 max-w-[580px] text-[16px] leading-relaxed text-ink-2 sm:text-[18px]">{hero.claim}</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {hero.ctas.map((c) => (
+              <a
+                key={c.href}
+                href={c.href}
+                className={`inline-flex h-11 items-center border px-5 font-mono text-[12px] uppercase tracking-[1px] transition-colors sm:h-12 sm:text-[13px] ${
+                  c.primary
+                    ? 'border-rust bg-rust text-fog-2 hover:border-ink hover:bg-ink'
+                    : 'border-ink text-ink hover:border-rust hover:text-rust'
+                }`}
+              >
+                {c.label}
+                {c.primary && <span aria-hidden className="ml-2">→</span>}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <dl className="mt-12 grid grid-cols-2 gap-x-6 border-t border-hairline md:mt-10 md:grid-cols-4">
+          {hero.stats.map((s) => (
+            <div key={s.value} className="flex flex-col-reverse pt-5">
+              <dt className="mt-2 text-[13px] leading-snug text-ink-2 sm:text-[14px]">{s.label}</dt>
+              <dd className="font-serif text-[34px] leading-none text-ink sm:text-[44px]">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
+
+      {mountScene && (
+        <p
+          aria-hidden
+          className={`pointer-events-none absolute max-w-[240px] max-md:hidden text-right font-mono text-[11px] leading-relaxed tracking-[1px] text-muted transition-opacity duration-[1200ms] bottom-[210px] right-8 lg:right-16 ${
+            live ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          {hero.sceneCaption}
+        </p>
+      )}
     </section>
   )
 }

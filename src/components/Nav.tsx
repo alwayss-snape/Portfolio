@@ -39,31 +39,18 @@ export default function Nav() {
         scrolled ? 'bg-[var(--nav-bar)] backdrop-blur-md' : ''
       }`}
     >
-      {/* Soft scrim keeps light links legible over the brighter parts of the poster. */}
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[var(--scene-scrim)] to-transparent transition-opacity duration-300 ${
-          scrolled ? 'opacity-0' : 'opacity-100'
-        }`}
-      />
       <nav
         aria-label="Primary"
         className="relative mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 font-mono text-[12px] sm:px-8 sm:text-[13px] lg:px-16"
       >
-        <a href="#top" className={`tracking-[2px] ${scrolled ? 'text-ink' : 'text-on-scene'}`}>
+        <a href="#top" className="tracking-[2px] text-ink">
           {profile.wordmark}
         </a>
         <ul className="flex gap-3 lowercase sm:gap-5 lg:gap-8">
           {items.map((n) => {
             const isActive = active === n.id
             const isContact = n.id === 'contact'
-            const color = scrolled
-              ? isActive || isContact
-                ? 'text-rust'
-                : 'text-ink hover:text-rust'
-              : isActive || isContact
-                ? 'text-rust-light'
-                : 'text-on-scene hover:text-rust-light'
+            const color = isActive || isContact ? 'text-rust' : 'text-ink hover:text-rust'
             return (
               <li key={n.id} className={n.wide ? 'max-sm:hidden' : undefined}>
                 <a

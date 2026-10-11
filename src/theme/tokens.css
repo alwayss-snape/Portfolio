@@ -21,8 +21,6 @@
   --muted: #6b766d;      /* captions, year labels */
   --hairline: #b4bbb1;   /* dividers, the base ring */
   --rust: #a4492a;       /* the single accent */
-  --rust-light: #f0915f; /* accent over the dark forest imagery */
-  --on-scene: #f1f3ee;   /* nav and links over the 3D scene */
 
   /* Font stacks */
   --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
@@ -30,8 +28,9 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* Type scale (desktop; hero clamps down on mobile) */
-  --text-hero: clamp(52px, 11vw, 124px);
-  --leading-hero: 0.96;
+  --text-hero: clamp(72px, 10.5vw, 156px);
+  --leading-hero: 0.88;
+  --text-designation: clamp(20px, 2.2vw, 30px);
   --text-section: clamp(56px, 9vw, 104px);
   --text-company: clamp(36px, 5vw, 52px);
   --text-body: 16px;
@@ -50,8 +49,6 @@
   --color-muted: var(--muted);
   --color-hairline: var(--hairline);
   --color-rust: var(--rust);
-  --color-rust-light: var(--rust-light);
-  --color-on-scene: var(--on-scene);
 
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
@@ -61,6 +58,5 @@
 :root {
   /* Derived surfaces */
   --nav-bar: color-mix(in srgb, var(--fog-2) 85%, transparent);
-  --scene-scrim: color-mix(in srgb, var(--ink) 38%, transparent); /* behind nav over the hero */
   --rust-glow: color-mix(in srgb, var(--rust) 22%, transparent);
 }

@@ -39,7 +39,7 @@ The full spec is `PORTFOLIO_BUILD_BRIEF.md`. Read it before any milestone work; 
 1. Scaffold, tokens, fonts, content model, deploy workflow; "hello" page to confirm base path. ← **done**
 2. All sections as static, responsive DOM; poster image as hero. ← **done**
 3. `CycleRing` with scroll-linked draw-in and list sync. ← **done**
-4. Hero — **name first + 3D point cloud** (decided 2026-10-11, replaces the forest photo + ring and overrides brief §5.2): the name is the `<h1>`, with designation, current role, one-line claim, CTAs and a proof-stat row in the DOM; `src/three/DataScene.tsx` / `PointCloud.tsx` add a minimal 3D scatter (axes + points that settle from noise into 8 clusters, one in rust). No photo, no ring in the hero. ← **done (local), awaiting review**
+4. Hero — **name first + 3D point cloud** (decided 2026-10-11, replaces the forest photo + ring and overrides brief §5.2): the name is the `<h1>`, with designation, current role, one-line claim, CTAs and four focus-area links (ml, agentic, data, mlops) in the DOM; `src/three/DataScene.tsx` / `PointCloud.tsx` add a minimal 3D scatter (axes + points that settle from noise into four clusters, one per focus area, in the `--cat-*` colours). Hovering a focus area or cluster highlights its pair; clicking either opens that category in Projects. No photo, no ring in the hero. ← **done (local), awaiting review**
 5. Resume pipeline (`scripts/resume-to-images.sh`, needs poppler/imagemagick/webp) and viewer + lightbox; no PDF in git history. ← **done (local), awaiting review**
 6. Polish: OG image, Lighthouse pass, cross-browser check.
 

@@ -110,6 +110,9 @@ export default function Projects() {
           history.replaceState(null, '', projectHref(id))
         }}
         onClose={() => {
+          // Closing rewrites the URL without a hashchange, so forget the open
+          // project here; otherwise the next hash link is mistaken for a close.
+          wasOpen.current = false
           setOpenId(null)
           history.replaceState(null, '', projectsHref(filter))
         }}

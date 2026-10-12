@@ -10,7 +10,7 @@ import { SPREAD, centres, flows, shapes } from './clusterLayout'
 
 export type Levels = { lit: THREE.Vector4; dim: number } // eased each frame by PointCloud
 
-type Props = { colors: THREE.Color[]; levels: RefObject<Levels>; still: boolean; mobile: boolean }
+type Props = { colors: THREE.Color[]; levels: RefObject<Levels>; still: boolean; mobile: boolean; sizeScale: number }
 
 const PICK = /* glsl */ `
   float levelOf(float idx, vec4 level) {
@@ -52,11 +52,11 @@ function syncLevels(material: THREE.ShaderMaterial | null, levels: Levels | null
 }
 
 // A soft, tinted glow at each cluster's core.
-function Halos({ colors, levels }: Props) {
+function Halos({ colors, levels, sizeScale }: Props) {
   const geo = useClusterAttrs(colors)
   const mat = useRef<THREE.ShaderMaterial>(null)
   const uniforms = useLevelUniforms()
-  const size = useMemo(() => ({ uSize: { value: 520 * Math.min(window.devicePixelRatio, 2) } }), [])
+  const size = useMemo(() => ({ uSize: { value: 520 * sizeScale * Math.min(window.devicePixelRatio, 2) } }), [sizeScale])
   useEffect(() => () => geo.dispose(), [geo])
   useFrame(() => syncLevels(mat.current, levels.current))
   return (

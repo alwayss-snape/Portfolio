@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { m, useMotionValueEvent, useTransform, type MotionValue } from 'motion/react'
 import { cyclesIntro, experience, ringSpan, type Cycle, type YearMonth } from '../content/experience'
 
@@ -57,7 +57,29 @@ type Props = {
 
 export default function CycleRing({ progress, rotate, hovered, onHover, onDrawing }: Props) {
   const years = Array.from({ length: SPAN_YEARS }, (_, i) => ringSpan.start + i)
-  const counterRotate = useTransform(rotate, (r) => -r)
+  const ringRef = useRef<SVGGElement>(null)
+  const labelRefs = useRef<(SVGTextElement | null)[]>([])
+
+  // The ring turns via SVG's own rotate attribute, and each year label is
+  // moved around the circle so it stays upright beside its tick. CSS rotation
+  // with transform-box is applied around the wrong origin in Safari, which
+  // pulled the labels off the ring on iPhone.
+  useEffect(() => {
+    const apply = (r: number) => {
+      ringRef.current?.setAttribute('transform', `rotate(${r} ${C} ${C})`)
+      years.forEach((y, i) => {
+        const el = labelRefs.current[i]
+        if (!el) return
+        const t = point((y - ringSpan.start) / SPAN_YEARS + r / 360, R + 38)
+        el.setAttribute('x', t.x.toFixed(2))
+        el.setAttribute('y', t.y.toFixed(2))
+      })
+    }
+    apply(rotate.get())
+    return rotate.on('change', apply)
+    // years is derived from module constants
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotate])
 
   return (
     <div className="relative [container-type:inline-size]">
@@ -66,44 +88,47 @@ export default function CycleRing({ progress, rotate, hovered, onHover, onDrawin
         role="img"
         aria-label={cyclesIntro.ringLabel}
         className="block h-auto w-full overflow-visible"
-        style={{ rotate }}
       >
-        <circle cx={C} cy={C} r={R} fill="none" className="stroke-hairline" strokeWidth={1} />
+        <g ref={ringRef}>
+          <circle cx={C} cy={C} r={R} fill="none" className="stroke-hairline" strokeWidth={1} />
+          {years.map((y) => {
+            const f = (y - ringSpan.start) / SPAN_YEARS
+            const a = point(f, R - 7)
+            const b = point(f, R + 7)
+            return <line key={y} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className="stroke-hairline" strokeWidth={1} />
+          })}
+          {experience.map((c) => (
+            <Arc
+              key={c.id}
+              cycle={c}
+              progress={progress[c.id]}
+              dimmed={hovered !== null && hovered !== c.id}
+              highlighted={hovered === c.id}
+              onHover={onHover}
+              onDrawing={onDrawing}
+            />
+          ))}
+        </g>
 
-        {years.map((y) => {
-          const f = (y - ringSpan.start) / SPAN_YEARS
-          const a = point(f, R - 7)
-          const b = point(f, R + 7)
-          const t = point(f, R + 38)
+        {/* Year labels stay upright: positioned around the circle, never rotated. */}
+        {years.map((y, i) => {
+          const t = point((y - ringSpan.start) / SPAN_YEARS, R + 38)
           return (
-            <g key={y}>
-              <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} className="stroke-hairline" strokeWidth={1} />
-              {/* Labels counter-rotate so they stay upright while the ring turns. */}
-              <m.text
-                x={t.x}
-                y={t.y}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                style={{ rotate: counterRotate, transformBox: 'fill-box', transformOrigin: 'center' }}
-                className={`font-mono text-[13px] tracking-[1px] max-sm:text-[22px] ${y === NOW.year ? 'fill-rust' : 'fill-muted'}`}
-              >
-                {y}
-              </m.text>
-            </g>
+            <text
+              key={y}
+              ref={(el) => {
+                labelRefs.current[i] = el
+              }}
+              x={t.x}
+              y={t.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className={`font-mono text-[13px] tracking-[1px] max-sm:text-[22px] ${y === NOW.year ? 'fill-rust' : 'fill-muted'}`}
+            >
+              {y}
+            </text>
           )
         })}
-
-        {experience.map((c) => (
-          <Arc
-            key={c.id}
-            cycle={c}
-            progress={progress[c.id]}
-            dimmed={hovered !== null && hovered !== c.id}
-            highlighted={hovered === c.id}
-            onHover={onHover}
-            onDrawing={onDrawing}
-          />
-        ))}
       </m.svg>
 
       {/* Centre copy sits outside the rotating SVG so it never turns. */}

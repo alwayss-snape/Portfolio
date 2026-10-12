@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import PointCloud from './PointCloud'
@@ -54,6 +54,10 @@ const FOOTPRINT = 6.2
 // (phones, tablets): centred above the text.
 function Layout({ mobile, still, highlight }: { mobile: boolean; still: boolean; highlight: number | null }) {
   const { width: w, height: h } = useThree((s) => s.size)
+  const [, refresh] = useState(0)
+  useEffect(() => {
+    document.fonts?.ready.then(() => refresh((n) => n + 1))
+  }, [])
   const visibleH = 2 * CAMERA_Z * Math.tan(THREE.MathUtils.degToRad(FOV / 2))
   const pxToWorld = visibleH / h
   // The hero can be taller than the screen on short phones, so place the
@@ -69,24 +73,47 @@ function Layout({ mobile, still, highlight }: { mobile: boolean; still: boolean;
     cy = vh * 0.44
     box = Math.min(column * 0.46, vh * 0.66)
   } else {
-    // Space above the text: from under the nav to where the hero text starts (40% of the height).
-    cx = w / 2
-    cy = 64 + (vh * 0.4 - 64) / 2 - 8
-    box = Math.min(w * 0.68, vh * 0.4 - 110)
+    // Phones and tablets: beside the name, in the space to the right of where
+    // the name's text actually ends (measured, since it depends on fonts).
+    const name = measureName()
+    if (name) {
+      const right = w - pagePadding(w)
+      const space = right - name.right - 8
+      cx = name.right + 8 + space / 2
+      cy = name.top + name.height / 2
+      box = Math.max(90, Math.min(space, name.height * 1.25))
+    } else {
+      cx = w * 0.72
+      cy = vh * 0.3
+      box = w * 0.4
+    }
   }
   const x = (cx - w / 2) * pxToWorld
   const y = (h / 2 - cy) * pxToWorld
   const scale = (box * pxToWorld) / FOOTPRINT
   return (
     <PointCloud
+      pointScale={Math.min(1, Math.max(0.5, box / 320))}
       position={[x, y, 0]}
       scale={scale}
-      count={mobile ? 1100 : 2000}
+      count={w < SIDE_BY_SIDE ? (box < 220 ? 650 : 1100) : 2000}
       still={still}
       active={highlight}
       mobile={mobile}
     />
   )
+}
+
+// The hero name's text box, relative to the hero (the canvas covers the hero).
+function measureName() {
+  const h1 = document.querySelector('#top h1')
+  const hero = document.getElementById('top')
+  if (!h1 || !hero) return null
+  const range = document.createRange()
+  range.selectNodeContents(h1)
+  const r = range.getBoundingClientRect()
+  const base = hero.getBoundingClientRect()
+  return { right: r.right - base.left, top: r.top - base.top, height: r.height }
 }
 
 function FirstFrame({ onReady }: { onReady: () => void }) {

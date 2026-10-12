@@ -152,8 +152,8 @@ export default function Hero() {
 
       {mountScene && live && <ClusterLabels highlight={highlight} />}
 
-      <div className="relative mx-auto flex w-full max-w-[1680px] flex-1 flex-col px-4 pb-8 pt-[40svh] sm:px-8 lg:px-16 lg:pb-10 lg:pt-20 2xl:px-20">
-        <div className="lg:my-auto lg:max-w-[min(640px,48%)]">
+      <div className="relative mx-auto flex w-full max-w-[1680px] flex-1 flex-col px-4 pb-8 pt-24 sm:px-8 lg:px-16 lg:pb-10 lg:pt-20 2xl:px-20">
+        <div className="my-auto lg:max-w-[min(640px,48%)]">
           <p className="font-mono text-[12px] tracking-[1px] text-ink-2 sm:text-[13px]">
             <span aria-hidden className="mr-2.5 inline-block size-2 rounded-full bg-rust align-middle shadow-[0_0_0_4px_var(--rust-glow)]" />
             <span className="font-medium text-ink">{hero.now.tag}</span> · {hero.now.text}
@@ -305,7 +305,7 @@ function ClusterLabels({ highlight }: { highlight: number | null }) {
     return () => cancelAnimationFrame(frame)
   }, [])
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0">
+    <div aria-hidden className="pointer-events-none absolute inset-0 max-lg:hidden">
       {categories.map((c, i) => (
         <span
           key={c.id}

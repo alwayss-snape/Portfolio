@@ -129,11 +129,12 @@ type Props = {
   still: boolean // reduced motion: fully formed, no spin, highlight changes snap
   active: number | null // focus area the visitor is pointing at
   mobile: boolean
+  pointScale: number // smaller dots when the cloud is drawn small (phones)
 }
 
 const levelsFor = (active: number | null) => Array.from({ length: CLUSTERS }, (_, i) => (i === active ? 1 : 0))
 
-export default function PointCloud({ position, scale, count, still, active, mobile }: Props) {
+export default function PointCloud({ position, scale, count, still, active, mobile, pointScale }: Props) {
   const group = useRef<THREE.Group>(null)
   const material = useRef<THREE.ShaderMaterial>(null)
   const invalidate = useThree((s) => s.invalidate)
@@ -149,13 +150,13 @@ export default function PointCloud({ position, scale, count, still, active, mobi
     () => ({
       uForm: { value: still ? 1 : 0 },
       uTime: { value: 0 },
-      uSize: { value: 46 * Math.min(window.devicePixelRatio, 2) },
+      uSize: { value: 46 * pointScale * Math.min(window.devicePixelRatio, 2) },
       uLevel: { value: new THREE.Vector4(...levelsFor(null)) },
       uDim: { value: 0 },
       uCats: { value: colors },
       uFog: { value: new THREE.Color(cssColor('--fog', '#d6dad2')) },
     }),
-    [still, colors],
+    [still, colors, pointScale],
   )
   const spin = useRef({ yaw: 0.6, amount: 1 })
   // Formation is timed from the first frame actually drawn, not from when the
@@ -248,7 +249,7 @@ export default function PointCloud({ position, scale, count, still, active, mobi
           depthWrite={false}
         />
       </points>
-      <ClusterExtras colors={colors} levels={levels} still={still} mobile={mobile} />
+      <ClusterExtras colors={colors} levels={levels} still={still} mobile={mobile} sizeScale={pointScale} />
     </group>
   )
 }

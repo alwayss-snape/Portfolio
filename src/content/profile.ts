@@ -12,27 +12,28 @@ export const profile = {
     now: { tag: 'Now', text: 'Advanced ML Engineer at Albertsons Companies · Bengaluru' },
     name: ['Kshitij', 'Chaubey'] as const, // second line renders italic
     claim:
-      'I build machine learning that moves real business numbers: measuring whether ads actually drive sales, and choosing the next best action for 35 million households.',
+      'I build machine learning that helps businesses make better decisions, from predictive models and experiments to the data pipelines and AI agents behind them.',
     ctas: [
       { label: 'See my work', href: '#experience', primary: true },
       { label: 'Résumé', href: '#resume', primary: false },
       { label: 'Get in touch', href: '#contact', primary: false },
     ],
-    stats: [
-      { value: '35M', label: 'households scored on 8 business actions' },
-      { value: '4.6B', label: 'transaction rows engineered in PySpark' },
-      { value: '90%', label: 'of high-risk insurance cases auto-routed' },
-      { value: '4.5 yrs', label: 'across retail, loyalty, finance & insurance' },
+    // What I do, at a glance: broad areas rather than project specifics.
+    focus: [
+      { title: 'Machine learning', text: 'Models that predict, rank and decide' },
+      { title: 'Causal inference', text: 'Measuring what actually works' },
+      { title: 'Data engineering', text: 'Pipelines that hold up at scale' },
+      { title: 'Applied AI', text: 'LLM tools and agents for real teams' },
     ],
     // Caption for the 3D point cloud beside the name.
-    sceneCaption: 'Each point is a household, clustered by its next best action',
+    sceneCaption: 'Raw data, settling into structure',
   },
 
   about: {
     label: '01 / About',
     paragraphs: [
-      "I'm a data scientist and machine learning engineer in Bengaluru with about four and a half years of building models that move real business numbers, across retail, loyalty, finance and insurance. Today I'm an Advanced Machine Learning Engineer at Albertsons, where I measure whether ads actually drive sales and decide what to offer each of 35 million households next.",
-      "I care about the whole loop, not just the model: features from billions of rows in PySpark and BigQuery, causal tests that hold up to scrutiny, and the MLOps that keeps everything retraining. Lately that loop includes agents. Deal Pilot, an agentic copilot that helps procurement teams negotiate with vendors, won Albertsons' internal hackathon in 2026.",
+      "I'm a data scientist and machine learning engineer in Bengaluru with about four and a half years of experience across retail, loyalty, finance and insurance. Today I'm an Advanced Machine Learning Engineer at Albertsons Companies.",
+      "I care about the whole loop, not just the model: understanding the business question, building the data behind it, testing whether an idea really works, and keeping models healthy once they ship. Lately that loop includes LLMs and agents.",
     ],
   },
 } as const

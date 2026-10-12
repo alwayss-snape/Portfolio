@@ -133,11 +133,11 @@ export default function Hero() {
           </div>
         </div>
 
-        <dl className="mt-12 grid grid-cols-2 gap-x-6 border-t border-hairline md:mt-10 md:grid-cols-4">
-          {hero.stats.map((s) => (
-            <div key={s.value} className="flex flex-col-reverse pt-5">
-              <dt className="mt-2 text-[13px] leading-snug text-ink-2 sm:text-[14px]">{s.label}</dt>
-              <dd className="font-serif text-[34px] leading-none text-ink sm:text-[44px]">{s.value}</dd>
+        <dl className="mt-12 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-hairline pt-1 md:mt-10 md:grid-cols-4">
+          {hero.focus.map((f) => (
+            <div key={f.title} className="pt-5">
+              <dt className="font-serif text-[24px] leading-tight text-ink sm:text-[30px]">{f.title}</dt>
+              <dd className="mt-1.5 text-[13px] leading-snug text-ink-2 sm:text-[14px]">{f.text}</dd>
             </div>
           ))}
         </dl>

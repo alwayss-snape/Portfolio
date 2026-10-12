@@ -5,11 +5,11 @@ import SectionHeader from '../components/SectionHeader'
 
 export default function Education() {
   return (
-    <section id="education" aria-labelledby="education-title" className="scroll-mt-16 py-24 sm:py-32">
+    <section id="education" aria-labelledby="education-title" className="scroll-mt-16 py-14 sm:py-20">
       <Container>
         <SectionHeader label={educationIntro.label} title={educationIntro.title} headingId="education-title" />
         <Reveal delay={0.08}>
-          <ul className="mt-14 divide-y divide-hairline border-y border-hairline">
+          <ul className="mt-10 divide-y divide-hairline border-y border-hairline">
             {education.map((e) => (
               <li key={e.school} className="py-8">
                 <p className="label text-moss">{e.dates}</p>

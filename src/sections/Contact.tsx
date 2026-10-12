@@ -40,7 +40,7 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" aria-labelledby="contact-title" className="scroll-mt-16 pb-24 pt-24 sm:pb-32 sm:pt-32">
+    <section id="contact" aria-labelledby="contact-title" className="scroll-mt-16 pb-20 pt-14 sm:pb-24 sm:pt-20">
       <Container>
         <SectionHeader
           label={contactIntro.label}
@@ -49,7 +49,7 @@ export default function Contact() {
           headingId="contact-title"
         />
         <Reveal delay={0.08}>
-          <div className="mt-14 grid gap-12 border-t border-hairline pt-10 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+          <div className="mt-10 grid gap-12 border-t border-hairline pt-10 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
             <div>
               <p className="label text-muted">{contactIntro.emailLabel}</p>
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-4">

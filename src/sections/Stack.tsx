@@ -6,11 +6,11 @@ import StackIcon from '../components/StackIcon'
 
 export default function Stack() {
   return (
-    <section id="stack" aria-labelledby="stack-title" className="scroll-mt-16 py-24 sm:py-32">
+    <section id="stack" aria-labelledby="stack-title" className="scroll-mt-16 py-14 sm:py-20">
       <Container>
         <SectionHeader label={stackIntro.label} title={stackIntro.title} headingId="stack-title" />
         <Reveal delay={0.08}>
-          <dl className="mt-14 divide-y divide-hairline border-y border-hairline">
+          <dl className="mt-10 divide-y divide-hairline border-y border-hairline">
             {stack.map((g) => (
               <div key={g.heading} className="grid gap-3 py-6 md:grid-cols-[240px_1fr] md:gap-10">
                 <dt className="label pt-1.5 text-moss">{g.heading}</dt>

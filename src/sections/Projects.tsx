@@ -42,7 +42,7 @@ export default function Projects() {
   }
 
   return (
-    <section ref={sectionRef} id="projects" aria-labelledby="projects-title" className="scroll-mt-16 py-24 sm:py-32">
+    <section ref={sectionRef} id="projects" aria-labelledby="projects-title" className="scroll-mt-16 py-14 sm:py-20">
       <Container>
         <SectionHeader
           label={projectsIntro.label}
@@ -51,7 +51,7 @@ export default function Projects() {
           headingId="projects-title"
         />
         <Reveal delay={0.08}>
-          <div role="group" aria-label={projectsIntro.title} className="mt-12 flex flex-wrap gap-2">
+          <div role="group" aria-label={projectsIntro.title} className="mt-10 flex flex-wrap gap-2">
             {[null, ...categories.map((c) => c.id)].map((f) => {
               const on = filter === f
               return (

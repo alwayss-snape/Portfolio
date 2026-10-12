@@ -5,7 +5,7 @@ import SectionHeader from '../components/SectionHeader'
 
 export default function About() {
   return (
-    <section id="about" aria-labelledby="about-label" className="scroll-mt-16 py-24 sm:py-32">
+    <section id="about" aria-labelledby="about-label" className="scroll-mt-16 py-14 sm:py-20">
       <Container>
         <SectionHeader label={profile.about.label} headingId="about-label" />
         <Reveal delay={0.08}>

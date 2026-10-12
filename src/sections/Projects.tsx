@@ -84,10 +84,7 @@ export default function Projects() {
                     className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
                     style={{ background: `var(--cat-${p.category})` }}
                   />
-                  <p className="label flex items-center gap-3 text-muted">
-                    {p.org} · {p.period}
-                    {p.status && <span className="border border-hairline px-1.5 py-0.5 text-[10px] text-ink-2">{p.status}</span>}
-                  </p>
+                  <p className="label text-muted">{p.org}</p>
                   <h3 className="mt-4 font-serif text-[28px] leading-[1.05] text-ink sm:text-[30px]">{p.title}</h3>
                   <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{p.summary}</p>
                   <div className="mt-auto flex items-center justify-between gap-4 pt-6">
@@ -176,10 +173,7 @@ function ProjectDialog({ openId, list, onNavigate, onClose }: DialogProps) {
           </div>
 
           <div data-scroll className="flex-1 overflow-y-auto px-5 pb-16 pt-10 sm:px-8">
-            <p className="label flex flex-wrap items-center gap-3 text-muted">
-              {project.org} · {project.period}
-              {project.status && <span className="border border-hairline px-1.5 py-0.5 text-[10px] text-ink-2">{project.status}</span>}
-            </p>
+            <p className="label text-muted">{project.org}</p>
             <h2 id="project-dialog-title" className="mt-4 font-serif text-[40px] leading-[1] sm:text-[52px]">
               {project.title}
             </h2>
@@ -195,29 +189,33 @@ function ProjectDialog({ openId, list, onNavigate, onClose }: DialogProps) {
 
             {detail ? (
               <div className="mt-10 space-y-9 text-[16px] leading-relaxed text-ink-2">
-                <DetailBlock title={projectsIntro.problem}>
-                  <p>{detail.problem}</p>
+                <DetailBlock title={projectsIntro.overview}>
+                  <p>{detail.overview}</p>
                 </DetailBlock>
                 <DetailBlock title={projectsIntro.approach}>
                   <Bullets items={detail.approach} />
                 </DetailBlock>
-                <DetailBlock title={projectsIntro.outcome}>
-                  <Bullets items={detail.outcome} />
-                </DetailBlock>
+                {detail.outcome && (
+                  <DetailBlock title={projectsIntro.outcome}>
+                    <Bullets items={detail.outcome} />
+                  </DetailBlock>
+                )}
               </div>
             ) : (
               <p className="mt-10 font-mono text-[12px] text-muted">{projectsIntro.loading}</p>
             )}
 
-            <DetailBlock title={projectsIntro.stackLabel} className="mt-9">
-              <ul className="flex flex-wrap gap-2">
-                {project.stack.map((s) => (
-                  <li key={s} className="border border-hairline px-2.5 py-1 font-mono text-[12px] text-ink">
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            </DetailBlock>
+            {project.stack.length > 0 && (
+              <DetailBlock title={projectsIntro.stackLabel} className="mt-9">
+                <ul className="flex flex-wrap gap-2">
+                  {project.stack.map((s) => (
+                    <li key={s} className="border border-hairline px-2.5 py-1 font-mono text-[12px] text-ink">
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </DetailBlock>
+            )}
           </div>
         </div>
       )}

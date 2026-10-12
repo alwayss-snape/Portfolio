@@ -32,7 +32,7 @@ export const profile = {
   about: {
     label: '01 / About',
     paragraphs: [
-      "I'm a data scientist and machine learning engineer in Bengaluru with about four and a half years of experience across retail, loyalty, finance and insurance. Today I'm an Advanced Machine Learning Engineer at Albertsons Companies.",
+      "I'm a data scientist and machine learning engineer in Bengaluru with about 4.5 years of experience across retail, loyalty, finance and insurance. Today I'm an Advanced Machine Learning Engineer at Albertsons Companies.",
       "I care about the whole loop, not just the model: understanding the business question, building the data behind it, testing whether an idea really works, and keeping models healthy once they ship. Lately that loop includes LLMs and agents.",
     ],
   },

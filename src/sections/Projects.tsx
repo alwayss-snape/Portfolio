@@ -84,8 +84,7 @@ export default function Projects() {
                     className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
                     style={{ background: `var(--cat-${p.category})` }}
                   />
-                  <p className="label text-muted">{p.org}</p>
-                  <h3 className="mt-4 font-serif text-[28px] leading-[1.05] text-ink sm:text-[30px]">{p.title}</h3>
+                  <h3 className="font-serif text-[28px] leading-[1.05] text-ink sm:text-[30px]">{p.title}</h3>
                   <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{p.summary}</p>
                   <div className="mt-auto flex items-center justify-between gap-4 pt-6">
                     <span className="flex items-center gap-2 font-mono text-[12px] tracking-[0.5px]" style={{ color: `var(--cat-${p.category}-ink)` }}>
@@ -173,8 +172,7 @@ function ProjectDialog({ openId, list, onNavigate, onClose }: DialogProps) {
           </div>
 
           <div data-scroll className="flex-1 overflow-y-auto px-5 pb-16 pt-10 sm:px-8">
-            <p className="label text-muted">{project.org}</p>
-            <h2 id="project-dialog-title" className="mt-4 font-serif text-[40px] leading-[1] sm:text-[52px]">
+            <h2 id="project-dialog-title" className="font-serif text-[40px] leading-[1] sm:text-[52px]">
               {project.title}
             </h2>
             <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 font-mono text-[12px] tracking-[0.5px]">

@@ -53,7 +53,7 @@ export const projectDetails: Record<string, ProjectDetail> = {
     overview:
       'An AI procurement copilot that helps the procurement team with vendor negotiations and quotations using supplier history, aimed at direct merchandise spend with consumer-goods vendors.',
     approach: ['Built the working prototype, front end and back end.'],
-    outcome: ['Won an internal Albertsons hackathon.', 'Management is taking it forward to build something more substantial.'],
+    outcome: ['Won an internal hackathon.', 'Management is taking it forward to build something more substantial.'],
   },
   'onsite-incrementality': {
     overview:
@@ -82,30 +82,6 @@ export const projectDetails: Record<string, ProjectDetail> = {
       'Exploring a global model architecture with model-ID embeddings.',
       'Piloting with 100–200 model IDs before scaling.',
       'Evaluating with MAE as the primary metric, with MAPE and sMAPE as complements.',
-    ],
-  },
-  'pipeline-consolidation': {
-    overview: 'A Databricks data pipeline, covering both the architectural design and the hands-on implementation.',
-    approach: [
-      'Consolidating notebooks into Python scripts and establishing a scalable repository structure.',
-      'Config-driven (YAML) ingestion, so new data sources can be added with minimal code changes.',
-      'Running ML pipelines as chained Python script tasks in Databricks Workflows, with MLflow.',
-    ],
-  },
-  'shelf-intelligence': {
-    overview: 'A design for an agent that catches out-of-stock risk early, conceived in my first weeks at Albertsons.',
-    approach: [
-      'A LangGraph-based agent that monitors point-of-sale velocity and inventory signals.',
-      'Scores out-of-stock risk per SKU and store, and dispatches tiered actions through Pub/Sub, Cloud Run and ERP APIs.',
-      'Built on BigQuery streaming, Delta Lake and Databricks sensing jobs on 15–30 minute schedules.',
-    ],
-  },
-  'mlops-framework': {
-    overview: 'A Python-based MLOps framework on Azure Databricks and Azure cloud services.',
-    approach: [
-      'Automated data ingestion, AutoML model training, versioning and deployment through CI/CD.',
-      'Developed CI/CD pipelines with automated testing, model validation and production deployments, for reproducible and scalable ML workflows across cloud and on-prem environments.',
-      'Implemented model monitoring and continuous retraining to track drift and log metrics, supported by a centralised feature store and model registry.',
     ],
   },
   'fraud-detection': {

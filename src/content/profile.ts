@@ -49,8 +49,8 @@ export type NavItem = {
 export const nav: NavItem[] = [
   { id: 'about', label: 'about', wide: true },
   { id: 'experience', label: 'work' },
-  { id: 'projects', label: 'projects' },
   { id: 'stack', label: 'stack', wide: true },
+  { id: 'projects', label: 'projects' },
   { id: 'certifications', label: 'certs', wide: true },
   { id: 'resume', label: 'résumé' },
   { id: 'education', label: 'education', wide: true },

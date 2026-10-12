@@ -5,7 +5,7 @@ export type StackItem = { name: string; icon: StackIconName }
 export type StackGroup = { heading: string; items: StackItem[] }
 
 export const stackIntro = {
-  label: '04 / Stack',
+  label: '03 / Stack',
   title: 'Instruments',
 }
 
@@ -50,5 +50,14 @@ export const stack: StackGroup[] = [
       { name: 'Tableau', icon: 'tableau' },
     ],
   },
-  { heading: 'Agents', items: [{ name: 'Agentic AI (Deal Pilot)', icon: 'agent' }] },
+  {
+    heading: 'Agentic AI',
+    items: [
+      { name: 'LangGraph', icon: 'agent' },
+      { name: 'LangChain', icon: 'agent' },
+      { name: 'Gemini', icon: 'agent' },
+      { name: 'Ollama', icon: 'agent' },
+      { name: 'Multi-agent systems', icon: 'agent' },
+    ],
+  },
 ]

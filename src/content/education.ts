@@ -12,6 +12,6 @@ export const education: Education[] = [
     school: 'KIIT University',
     degree: 'B.Tech, Computer Science & Communication Engineering',
     dates: '2018 → 2022',
-    notes: ['CGPA 8.2/10'],
+    notes: [],
   },
 ]

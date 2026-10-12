@@ -24,7 +24,7 @@ export type Project = {
 }
 
 export const projectsIntro = {
-  label: '03 / Projects',
+  label: '04 / Projects',
   title: 'Projects',
   sub: 'A wider look at what I have built. Filter by focus area, or open a project for the full story.',
   all: 'All',

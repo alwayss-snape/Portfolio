@@ -40,7 +40,10 @@ export default function DataScene({ rendering, mobile, still, highlight, onReady
 function CameraRig() {
   useFrame((state, delta) => {
     const cam = state.camera
-    cam.position.z = THREE.MathUtils.damp(cam.position.z, CAMERA_Z - sceneInput.scroll * DOLLY, 4, delta)
+    // The push-in on scroll only suits the side-by-side layout; on narrow
+    // screens the cloud sits mid-page and would grow over the text below it.
+    const dolly = state.size.width >= SIDE_BY_SIDE ? sceneInput.scroll * DOLLY : 0
+    cam.position.z = THREE.MathUtils.damp(cam.position.z, CAMERA_Z - dolly, 4, delta)
   })
   return null
 }
@@ -73,19 +76,17 @@ function Layout({ mobile, still, highlight }: { mobile: boolean; still: boolean;
     cy = vh * 0.44
     box = Math.min(column * 0.46, vh * 0.66)
   } else {
-    // Phones and tablets: beside the name, in the space to the right of where
-    // the name's text actually ends (measured, since it depends on fonts).
-    const name = measureName()
-    if (name) {
-      const right = w - pagePadding(w)
-      const space = right - name.right - 8
-      cx = name.right + 8 + space / 2
-      cy = name.top + name.height / 2
-      box = Math.max(90, Math.min(space, name.height * 1.25))
+    // Phones and tablets: centred in its own slot below the pitch and buttons
+    // (measured from the page, since its position depends on the text above).
+    const slot = measureSlot()
+    if (slot) {
+      cx = slot.left + slot.width / 2
+      cy = slot.top + slot.height / 2
+      box = Math.min(slot.width * 0.72, slot.height * 0.8)
     } else {
-      cx = w * 0.72
-      cy = vh * 0.3
-      box = w * 0.4
+      cx = w / 2
+      cy = vh * 0.7
+      box = w * 0.6
     }
   }
   const x = (cx - w / 2) * pxToWorld
@@ -96,7 +97,7 @@ function Layout({ mobile, still, highlight }: { mobile: boolean; still: boolean;
       pointScale={Math.min(1, Math.max(0.5, box / 320))}
       position={[x, y, 0]}
       scale={scale}
-      count={w < SIDE_BY_SIDE ? (box < 220 ? 650 : 1100) : 2000}
+      count={w < SIDE_BY_SIDE ? 1200 : 2000}
       still={still}
       active={highlight}
       mobile={mobile}
@@ -104,16 +105,15 @@ function Layout({ mobile, still, highlight }: { mobile: boolean; still: boolean;
   )
 }
 
-// The hero name's text box, relative to the hero (the canvas covers the hero).
-function measureName() {
-  const h1 = document.querySelector('#top h1')
+// The phone/tablet cloud slot's box, relative to the hero (the canvas covers the hero).
+function measureSlot() {
+  const slot = document.getElementById('cloud-slot')
   const hero = document.getElementById('top')
-  if (!h1 || !hero) return null
-  const range = document.createRange()
-  range.selectNodeContents(h1)
-  const r = range.getBoundingClientRect()
+  if (!slot || !hero) return null
+  const r = slot.getBoundingClientRect()
+  if (!r.height) return null
   const base = hero.getBoundingClientRect()
-  return { right: r.right - base.left, top: r.top - base.top, height: r.height }
+  return { left: r.left - base.left, top: r.top - base.top, width: r.width, height: r.height }
 }
 
 function FirstFrame({ onReady }: { onReady: () => void }) {

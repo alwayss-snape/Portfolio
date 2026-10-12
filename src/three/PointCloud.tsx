@@ -212,7 +212,7 @@ export default function PointCloud({ position, scale, count, still, active, mobi
       s.amount = THREE.MathUtils.damp(s.amount, drag.active ? 0 : 1, 1.5, delta)
       s.yaw += delta * (touchOnly ? TOUCH_SPIN : SPIN) * s.amount
 
-      const yaw = s.yaw + drag.yaw + sceneInput.pointer.x * 0.35 * s.amount + sceneInput.scroll * 1.2
+      const yaw = s.yaw + drag.yaw + sceneInput.pointer.x * 0.35 * s.amount + (touchOnly ? 0 : sceneInput.scroll * 1.2)
       const drift = touchOnly ? Math.sin(t * 0.35) * 0.16 : 0
       const pitch = BASE_PITCH + drag.pitch + drift + sceneInput.pointer.y * 0.18 * s.amount
       const k = drag.active ? 14 : 3

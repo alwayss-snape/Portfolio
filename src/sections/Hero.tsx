@@ -27,6 +27,9 @@ export default function Hero() {
   const reduceMotion = useReducedMotion() ?? false
   const mobile = !useMediaQuery('(min-width: 768px)')
   const [mountScene, setMountScene] = useState(false)
+  // Checked once up front, so the phone cloud slot is reserved from the first
+  // paint (no jump when the scene loads) and skipped where 3D can't run.
+  const [canWebGL] = useState(hasWebGL)
   const [live, setLive] = useState(false)
   const [rendering, setRendering] = useState(true)
   // Which focus area is lit: hover/keyboard focus on a tile, else a hover on the cloud.
@@ -189,7 +192,22 @@ export default function Hero() {
           </div>
         </div>
 
-        <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-hairline lg:mt-8 lg:grid-cols-4">
+        {/* Phones and tablets: the cloud gets its own space here, below the
+            pitch and above the focus areas. Tap a cluster to open its projects. */}
+        <div
+          id="cloud-slot"
+          aria-hidden
+          onPointerDown={onSurfaceDown}
+          onPointerMove={onSurfaceMove}
+          onPointerUp={onSurfaceUp}
+          onPointerCancel={() => {
+            dragStart.current = null
+            sceneInput.drag.active = false
+          }}
+          className={`mt-6 h-[min(88vw,420px)] touch-pan-y lg:hidden ${canWebGL ? '' : 'hidden'}`}
+        />
+
+        <ul className="mt-8 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-hairline lg:mt-8 lg:grid-cols-4">
           {hero.focus.map((f, i) => {
             const lit = highlight === i
             const cat = categories[i].id
@@ -305,7 +323,7 @@ function ClusterLabels({ highlight }: { highlight: number | null }) {
     return () => cancelAnimationFrame(frame)
   }, [])
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 max-lg:hidden">
+    <div aria-hidden className="pointer-events-none absolute inset-0">
       {categories.map((c, i) => (
         <span
           key={c.id}

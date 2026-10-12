@@ -26,7 +26,14 @@ export default function Hero() {
   const mobile = !useMediaQuery('(min-width: 768px)')
   const [mountScene, setMountScene] = useState(false)
   const [live, setLive] = useState(false)
-  const [active, setActive] = useState(true)
+  const [rendering, setRendering] = useState(true)
+  // Which focus area is lit: hover/keyboard focus wins, then a hover on the
+  // cloud itself, then a tap (phones) that stays until tapped again.
+  const [pointed, setPointed] = useState<number | null>(null)
+  const [cloudHover, setCloudHover] = useState<number | null>(null)
+  const [pinned, setPinned] = useState<number | null>(null)
+  const highlight = pointed ?? cloudHover ?? pinned
+  const dragStart = useRef<{ x: number; y: number; touch: boolean } | null>(null)
 
   // Load the 3D chunk only after the page is idle, so it never competes with the LCP.
   useEffect(() => {
@@ -56,7 +63,7 @@ export default function Hero() {
     onScroll()
 
     let onScreen = true
-    const sync = () => setActive(onScreen && document.visibilityState === 'visible')
+    const sync = () => setRendering(onScreen && document.visibilityState === 'visible')
     const io = new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting
       sync()
@@ -76,6 +83,45 @@ export default function Hero() {
 
   const onReady = useCallback(() => setLive(true), [])
 
+  // The drag surface sits over the cloud: it hit-tests clusters for hover and
+  // turns the cloud on drag. Touch only turns it sideways, so vertical swipes
+  // still scroll the page.
+  const clusterAt = (e: React.PointerEvent) => {
+    const rect = sectionRef.current?.getBoundingClientRect()
+    if (!rect) return null
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    let best: number | null = null
+    let bestDist = sceneInput.clusterRadius * 1.4
+    sceneInput.clusters.forEach((c, i) => {
+      const d = Math.hypot(c.x - x, c.y - y)
+      if (d < bestDist) {
+        bestDist = d
+        best = i
+      }
+    })
+    return best
+  }
+  const onSurfaceDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduceMotion) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragStart.current = { x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch' }
+    sceneInput.drag.active = true
+  }
+  const onSurfaceMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = dragStart.current
+    if (start) {
+      sceneInput.drag.yaw = (e.clientX - start.x) * 0.008
+      sceneInput.drag.pitch = start.touch ? 0 : (e.clientY - start.y) * 0.006
+      return
+    }
+    if (e.pointerType === 'mouse') setCloudHover(clusterAt(e))
+  }
+  const onSurfaceUp = () => {
+    dragStart.current = null
+    sceneInput.drag.active = false
+  }
+
   return (
     <section
       ref={sectionRef}
@@ -91,7 +137,7 @@ export default function Hero() {
           }`}
         >
           <Suspense fallback={null}>
-            <DataScene active={active} mobile={mobile} still={reduceMotion} onReady={onReady} />
+            <DataScene rendering={rendering} mobile={mobile} still={reduceMotion} highlight={highlight} onReady={onReady} />
           </Suspense>
         </div>
       )}
@@ -133,15 +179,56 @@ export default function Hero() {
           </div>
         </div>
 
-        <dl className="mt-12 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-hairline pt-1 md:mt-10 md:grid-cols-4">
-          {hero.focus.map((f) => (
-            <div key={f.title} className="pt-5">
-              <dt className="font-serif text-[24px] leading-tight text-ink sm:text-[30px]">{f.title}</dt>
-              <dd className="mt-1.5 text-[13px] leading-snug text-ink-2 sm:text-[14px]">{f.text}</dd>
-            </div>
-          ))}
-        </dl>
+        <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-hairline md:mt-10 md:grid-cols-4">
+          {hero.focus.map((f, i) => {
+            const lit = highlight === i
+            return (
+              <li key={f.title} data-lit={lit || undefined} className="relative">
+                {/* The divider above a lit item turns rust, like its cluster. */}
+                <span
+                  aria-hidden
+                  className={`absolute inset-x-0 -top-px h-0.5 origin-left bg-rust transition-transform duration-500 ${
+                    lit ? 'scale-x-100' : 'scale-x-0'
+                  }`}
+                />
+                <button
+                  type="button"
+                  aria-pressed={pinned === i}
+                  onPointerEnter={(e) => e.pointerType === 'mouse' && setPointed(i)}
+                  onPointerLeave={(e) => e.pointerType === 'mouse' && setPointed(null)}
+                  onFocus={(e) => e.currentTarget.matches(':focus-visible') && setPointed(i)}
+                  onBlur={() => setPointed(null)}
+                  onClick={() => setPinned((p) => (p === i ? null : i))}
+                  className="w-full cursor-default pb-1 pt-5 text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rust"
+                >
+                  <span
+                    className={`block font-serif text-[24px] leading-tight transition-colors duration-500 sm:text-[30px] ${
+                      lit ? 'text-rust' : 'text-ink'
+                    }`}
+                  >
+                    {f.title}
+                  </span>
+                  <span className="mt-1.5 block text-[13px] leading-snug text-ink-2 sm:text-[14px]">{f.text}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
       </div>
+
+      {mountScene && live && (
+        <div
+          aria-hidden
+          onPointerDown={onSurfaceDown}
+          onPointerMove={onSurfaceMove}
+          onPointerUp={onSurfaceUp}
+          onPointerCancel={onSurfaceUp}
+          onPointerLeave={() => setCloudHover(null)}
+          className={`absolute bottom-[200px] left-[52%] right-0 top-16 hidden touch-pan-y lg:block ${
+            reduceMotion ? '' : 'cursor-grab active:cursor-grabbing'
+          }`}
+        />
+      )}
 
       {mountScene && (
         <p

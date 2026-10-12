@@ -1,19 +1,23 @@
-import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { cssColor, sceneInput } from './sceneInput'
 
-// A 3D scatter plot: points start as uniform noise and settle into eight
-// clusters, one per business action. One cluster is lit in the accent.
+// A 3D scatter plot: points start as uniform noise and settle into four
+// clusters, one per focus area in the hero. The active cluster is lit in
+// the accent and the rest dim; with nothing active, the first glows softly.
 
-const CLUSTERS = 8
-const HOT = 0 // index of the highlighted cluster
-const SPREAD = 0.26 // cluster standard deviation
-const RADIUS = 2 // how far cluster centres sit from the origin
+const CLUSTERS = 4
+const IDLE = 0 // cluster that stays softly lit when nothing is active
+const IDLE_LEVEL = 0.55
+const DIM = 0.55 // how far inactive clusters fade toward the fog
+const SPREAD = 0.36 // cluster standard deviation
+const RADIUS = 1.85 // how far cluster centres sit from the origin
 const BOX = 2.4 // half-size of the axis box and the noise volume
 const MAX_DELAY = 0.35 // points settle at staggered times
 const FORM_SECONDS = 2.6 // noise → clusters on first load
 const SPIN = 0.05 // idle yaw, radians per second
+const BASE_PITCH = 0.28
 
 // Seeded so the cloud looks the same on every visit.
 function rng(seed: number) {
@@ -28,32 +32,33 @@ function gauss(rand: () => number) {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand())
 }
 
+// Cluster centres spread evenly over a sphere (Fibonacci lattice).
+const centres = Array.from({ length: CLUSTERS }, (_, i) => {
+  const y = 1 - ((i + 0.5) / CLUSTERS) * 2
+  const r = Math.sqrt(1 - y * y)
+  const theta = i * Math.PI * (3 - Math.sqrt(5))
+  return new THREE.Vector3(Math.cos(theta) * r, y * 0.85, Math.sin(theta) * r).multiplyScalar(RADIUS)
+})
+
 function buildCloud(count: number) {
   const rand = rng(42)
-  // Cluster centres spread evenly over a sphere (Fibonacci lattice).
-  const centres = Array.from({ length: CLUSTERS }, (_, i) => {
-    const y = 1 - ((i + 0.5) / CLUSTERS) * 2
-    const r = Math.sqrt(1 - y * y)
-    const theta = i * Math.PI * (3 - Math.sqrt(5))
-    return new THREE.Vector3(Math.cos(theta) * r, y * 0.8, Math.sin(theta) * r).multiplyScalar(RADIUS)
-  })
   const target = new Float32Array(count * 3)
   const start = new Float32Array(count * 3)
   const delay = new Float32Array(count)
-  const hot = new Float32Array(count)
+  const cluster = new Float32Array(count)
   for (let i = 0; i < count; i++) {
     const k = i % CLUSTERS
     const c = centres[k]
     target.set([c.x + gauss(rand) * SPREAD, c.y + gauss(rand) * SPREAD, c.z + gauss(rand) * SPREAD], i * 3)
     start.set([(rand() * 2 - 1) * BOX, (rand() * 2 - 1) * BOX, (rand() * 2 - 1) * BOX], i * 3)
     delay[i] = rand() * MAX_DELAY
-    hot[i] = k === HOT ? 1 : 0
+    cluster[i] = k
   }
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.BufferAttribute(target, 3))
   geo.setAttribute('aStart', new THREE.BufferAttribute(start, 3))
   geo.setAttribute('aDelay', new THREE.BufferAttribute(delay, 1))
-  geo.setAttribute('aHot', new THREE.BufferAttribute(hot, 1))
+  geo.setAttribute('aCluster', new THREE.BufferAttribute(cluster, 1))
   return geo
 }
 
@@ -81,12 +86,14 @@ function buildAxes() {
 const vertex = /* glsl */ `
   attribute vec3 aStart;
   attribute float aDelay;
-  attribute float aHot;
+  attribute float aCluster;
   uniform float uForm;
   uniform float uTime;
   uniform float uSize;
-  varying float vHot;
-  varying float vDepth;
+  uniform vec4 uLevel; // per cluster: 0 = plain, 1 = fully lit
+  uniform float uDim; // how much unlit clusters fade
+  varying float vLevel;
+  varying float vFade;
   void main() {
     float m = clamp((uForm - aDelay) / (1.0 - ${MAX_DELAY.toFixed(2)}), 0.0, 1.0);
     m = m * m * (3.0 - 2.0 * m);
@@ -95,9 +102,11 @@ const vertex = /* glsl */ `
     p += 0.025 * vec3(sin(uTime * 0.6 + aDelay * 40.0), cos(uTime * 0.5 + aDelay * 31.0), sin(uTime * 0.4 + aDelay * 23.0));
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = uSize * mix(1.0, 1.4, aHot) / -mv.z;
-    vHot = aHot;
-    vDepth = -mv.z;
+    vec4 pick = vec4(1.0) - step(vec4(0.5), abs(vec4(aCluster) - vec4(0.0, 1.0, 2.0, 3.0)));
+    vLevel = dot(uLevel, pick);
+    gl_PointSize = uSize * mix(1.0, 1.35, vLevel) / -mv.z;
+    // Far points sink into the fog; unlit clusters sink further while one is active.
+    vFade = smoothstep(10.5, 14.5, -mv.z) * 0.6 + uDim * (1.0 - vLevel);
   }
 `
 
@@ -105,16 +114,15 @@ const fragment = /* glsl */ `
   uniform vec3 uInk;
   uniform vec3 uHot;
   uniform vec3 uFog;
-  varying float vHot;
-  varying float vDepth;
+  varying float vLevel;
+  varying float vFade;
   void main() {
     float d = length(gl_PointCoord - 0.5);
     if (d > 0.5) discard;
     float edge = smoothstep(0.5, 0.36, d);
-    vec3 col = mix(uInk, uHot, vHot);
-    // Far points sink into the fog, which gives the cloud its depth.
-    col = mix(col, uFog, smoothstep(10.5, 14.5, vDepth) * 0.6 * (1.0 - vHot * 0.6));
-    gl_FragColor = vec4(col, edge * mix(0.75, 0.95, vHot));
+    vec3 col = mix(uInk, uHot, vLevel);
+    col = mix(col, uFog, clamp(vFade, 0.0, 0.85) * (1.0 - vLevel * 0.6));
+    gl_FragColor = vec4(col, edge * mix(0.75, 0.95, vLevel));
     #include <colorspace_fragment>
   }
 `
@@ -123,12 +131,17 @@ type Props = {
   position: [number, number, number]
   scale: number
   count: number
-  still: boolean // reduced motion: fully formed, no spin
+  still: boolean // reduced motion: fully formed, no spin, highlight changes snap
+  active: number | null // focus area the visitor is pointing at
 }
 
-export default function PointCloud({ position, scale, count, still }: Props) {
+const levelsFor = (active: number | null) =>
+  Array.from({ length: CLUSTERS }, (_, i) => (active === null ? (i === IDLE ? IDLE_LEVEL : 0) : i === active ? 1 : 0))
+
+export default function PointCloud({ position, scale, count, still, active }: Props) {
   const group = useRef<THREE.Group>(null)
   const material = useRef<THREE.ShaderMaterial>(null)
+  const invalidate = useThree((s) => s.invalidate)
   const cloudGeo = useMemo(() => buildCloud(count), [count])
   const axesGeo = useMemo(() => buildAxes(), [])
   const hairline = useMemo(() => new THREE.Color(cssColor('--muted', '#6b766d')), [])
@@ -137,29 +150,81 @@ export default function PointCloud({ position, scale, count, still }: Props) {
       uForm: { value: still ? 1 : 0 },
       uTime: { value: 0 },
       uSize: { value: 46 * Math.min(window.devicePixelRatio, 2) },
+      uLevel: { value: new THREE.Vector4(...levelsFor(null)) },
+      uDim: { value: 0 },
       uInk: { value: new THREE.Color(cssColor('--moss', '#4a5a4e')) },
       uHot: { value: new THREE.Color(cssColor('--rust', '#a4492a')) },
       uFog: { value: new THREE.Color(cssColor('--fog', '#d6dad2')) },
     }),
     [still],
   )
+  const spin = useRef({ yaw: 0.6, amount: 1 })
+  const tmp = useMemo(() => new THREE.Vector3(), [])
+
+  // Reduced motion: no easing, so redraw the single frame whenever the highlight changes.
+  useEffect(() => {
+    const m = material.current
+    if (!still || !m) return
+    m.uniforms.uLevel.value.set(...levelsFor(active))
+    m.uniforms.uDim.value = active === null ? 0 : DIM
+    invalidate()
+  }, [active, still, invalidate])
 
   useFrame((state, delta) => {
     const g = group.current
     const m = material.current
-    if (!g || !m || still) return
-    const t = state.clock.elapsedTime
-    m.uniforms.uTime.value = t
-    m.uniforms.uForm.value = Math.min(1, t / FORM_SECONDS)
-    // Idle spin, plus a gentle tilt toward the pointer and a turn on scroll.
-    g.userData.yaw = (g.userData.yaw ?? 0.6) + delta * SPIN
-    const yaw = g.userData.yaw + sceneInput.pointer.x * 0.35 + sceneInput.scroll * 1.2
-    g.rotation.y = THREE.MathUtils.damp(g.rotation.y, yaw, 3, delta)
-    g.rotation.x = THREE.MathUtils.damp(g.rotation.x, 0.28 + sceneInput.pointer.y * 0.18, 3, delta)
+    if (!g || !m) return
+
+    if (!still) {
+      const t = state.clock.elapsedTime
+      m.uniforms.uTime.value = t
+      m.uniforms.uForm.value = Math.min(1, t / FORM_SECONDS)
+
+      // Ease each cluster toward its target level.
+      const target = levelsFor(active)
+      const lv = m.uniforms.uLevel.value as THREE.Vector4
+      lv.set(
+        THREE.MathUtils.damp(lv.x, target[0], 6, delta),
+        THREE.MathUtils.damp(lv.y, target[1], 6, delta),
+        THREE.MathUtils.damp(lv.z, target[2], 6, delta),
+        THREE.MathUtils.damp(lv.w, target[3], 6, delta),
+      )
+      m.uniforms.uDim.value = THREE.MathUtils.damp(m.uniforms.uDim.value, active === null ? 0 : DIM, 6, delta)
+
+      // Dragging pauses the idle spin; on release the turn is kept and the spin eases back in.
+      const drag = sceneInput.drag
+      const s = spin.current
+      if (!drag.active && drag.yaw !== 0) {
+        s.yaw += drag.yaw
+        drag.yaw = 0
+      }
+      if (!drag.active) drag.pitch = THREE.MathUtils.damp(drag.pitch, 0, 3, delta)
+      s.amount = THREE.MathUtils.damp(s.amount, drag.active ? 0 : 1, 1.5, delta)
+      s.yaw += delta * SPIN * s.amount
+
+      const yaw = s.yaw + drag.yaw + sceneInput.pointer.x * 0.35 * s.amount + sceneInput.scroll * 1.2
+      const pitch = BASE_PITCH + drag.pitch + sceneInput.pointer.y * 0.18 * s.amount
+      const k = drag.active ? 14 : 3
+      g.rotation.y = THREE.MathUtils.damp(g.rotation.y, yaw, k, delta)
+      g.rotation.x = THREE.MathUtils.damp(g.rotation.x, THREE.MathUtils.clamp(pitch, -0.6, 1.1), k, delta)
+    }
+
+    // Report where each cluster sits on screen so the DOM can hit-test hovers.
+    g.updateMatrixWorld()
+    const { width, height } = state.size
+    sceneInput.clusters = centres.map((c) => {
+      tmp.copy(c)
+      g.localToWorld(tmp).project(state.camera)
+      return { x: ((tmp.x + 1) / 2) * width, y: ((1 - tmp.y) / 2) * height }
+    })
+    tmp.set(SPREAD * 2.4 * scale, 0, 0).add(g.position).project(state.camera)
+    const edge = ((tmp.x + 1) / 2) * width
+    tmp.copy(g.position).project(state.camera)
+    sceneInput.clusterRadius = Math.abs(edge - ((tmp.x + 1) / 2) * width)
   })
 
   return (
-    <group ref={group} position={position} scale={scale} rotation={[0.28, 0.6, 0]}>
+    <group ref={group} position={position} scale={scale} rotation={[BASE_PITCH, 0.6, 0]}>
       <lineSegments geometry={axesGeo}>
         <lineBasicMaterial color={hairline} transparent opacity={0.55} />
       </lineSegments>

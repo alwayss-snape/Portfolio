@@ -31,6 +31,7 @@
   --text-hero: clamp(72px, 10.5vw, 156px);
   --leading-hero: 0.88;
   --text-designation: clamp(20px, 2.2vw, 30px);
+  --text-email: clamp(26px, 5.2vw, 68px);
   --text-section: clamp(56px, 9vw, 104px);
   --text-company: clamp(36px, 5vw, 52px);
   --text-body: 16px;

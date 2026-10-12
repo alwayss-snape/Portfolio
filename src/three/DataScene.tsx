@@ -12,24 +12,25 @@ const CAMERA_Z = 11
 const DOLLY = 2 // units toward the cloud across the hero scroll
 
 type Props = {
-  active: boolean // render only while the hero is on screen and the tab visible
+  rendering: boolean // render only while the hero is on screen and the tab visible
   mobile: boolean
   still: boolean // reduced motion: draw once, fully formed
+  highlight: number | null // focus area the visitor is pointing at
   onReady: () => void
 }
 
-export default function DataScene({ active, mobile, still, onReady }: Props) {
+export default function DataScene({ rendering, mobile, still, highlight, onReady }: Props) {
   return (
     <Canvas
       className="!absolute inset-0"
-      frameloop={still ? 'demand' : active ? 'always' : 'never'}
+      frameloop={still ? 'demand' : rendering ? 'always' : 'never'}
       dpr={mobile ? [1, 1.5] : [1, 2]}
       gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
       camera={{ fov: FOV, position: [0, 0, CAMERA_Z], near: 0.1, far: 60 }}
       aria-hidden
     >
       {!still && <CameraRig />}
-      <Layout mobile={mobile} still={still} />
+      <Layout mobile={mobile} still={still} highlight={highlight} />
       <FirstFrame onReady={onReady} />
     </Canvas>
   )
@@ -44,7 +45,7 @@ function CameraRig() {
 }
 
 // Desktop: right of the name, vertically centred. Phones: above the text.
-function Layout({ mobile, still }: { mobile: boolean; still: boolean }) {
+function Layout({ mobile, still, highlight }: { mobile: boolean; still: boolean; highlight: number | null }) {
   const size = useThree((s) => s.size)
   const aspect = size.width / size.height
   const visibleH = 2 * CAMERA_Z * Math.tan(THREE.MathUtils.degToRad(FOV / 2))
@@ -53,7 +54,15 @@ function Layout({ mobile, still }: { mobile: boolean; still: boolean }) {
   const x = portrait ? visibleW * 0.12 : visibleW * 0.23
   const y = portrait ? visibleH * 0.31 : visibleH * 0.08
   const scale = portrait ? Math.min(0.5, visibleW / 9) : Math.min(0.68, visibleW / 17)
-  return <PointCloud position={[x, y, 0]} scale={scale} count={mobile ? 1000 : 1600} still={still} />
+  return (
+    <PointCloud
+      position={[x, y, 0]}
+      scale={scale}
+      count={mobile ? 1000 : 1600}
+      still={still}
+      active={highlight}
+    />
+  )
 }
 
 function FirstFrame({ onReady }: { onReady: () => void }) {

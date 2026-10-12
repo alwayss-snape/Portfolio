@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LazyMotion, domAnimation, m, useReducedMotion, useScroll } from 'motion/react'
 import { nav, profile } from '../content/profile'
 
 const items = nav.filter((n) => !n.hidden)
@@ -7,6 +8,8 @@ const SCROLL_THRESHOLD = 80
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [active, setActive] = useState<string | null>(null)
+  const reduceMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD)
@@ -65,6 +68,16 @@ export default function Nav() {
           })}
         </ul>
       </nav>
+      {/* How far down the page the visitor is; hidden with reduced motion. */}
+      {!reduceMotion && (
+        <LazyMotion features={domAnimation} strict>
+          <m.div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-rust"
+            style={{ scaleX: scrollYProgress }}
+          />
+        </LazyMotion>
+      )}
     </header>
   )
 }

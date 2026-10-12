@@ -26,7 +26,7 @@ export const profile = {
       { title: 'MLOps', text: 'Shipping models and keeping them healthy' },
     ],
     // Caption for the 3D point cloud beside the name.
-    sceneCaption: 'Raw data, settling into structure',
+    sceneCaption: 'One cluster per focus area. Hover to explore, drag to turn.',
   },
 
   about: {

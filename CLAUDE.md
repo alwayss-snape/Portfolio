@@ -30,7 +30,7 @@ The full spec is `PORTFOLIO_BUILD_BRIEF.md`. Read it before any milestone work; 
 ## Design constraints
 
 - Theme "Overcast": light grey-green fog background, single rust accent. No pure black anywhere. AA contrast (`--ink` / `--ink-2` on `--fog` for text).
-- Designation is always "Data Scientist & ML Engineer" (kicker, About, `<title>`, meta description).
+- Designation is always "ML Engineer · Data Scientist" (hero, `<title>`, meta description). Changed from "Data Scientist & ML Engineer" on 2026-10-12 at Kshitij's request.
 - Respect `prefers-reduced-motion` (point cloud drawn once, fully clustered; timeline ring fully drawn). Content must be readable without motion or WebGL.
 - Budget: initial JS (excluding the 3D chunk) < 120 KB gzipped.
 

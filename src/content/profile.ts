@@ -2,7 +2,7 @@
 
 export const profile = {
   name: 'Kshitij Chaubey',
-  designation: 'Data Scientist & ML Engineer',
+  designation: 'ML Engineer · Data Scientist',
   location: 'Bengaluru',
   wordmark: 'K—C',
   skipLink: 'Skip to content',

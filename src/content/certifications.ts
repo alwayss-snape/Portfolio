@@ -10,5 +10,5 @@ export const certificationsIntro = {
 
 export const certifications: Certification[] = [
   { name: 'Databricks Certified Machine Learning Associate', issuer: 'Databricks' },
-  { name: 'SQL for Data Science' },
+  { name: 'SQL for Data Science', issuer: 'Coursera' },
 ]

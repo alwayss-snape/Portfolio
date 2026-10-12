@@ -12,7 +12,7 @@ export const profile = {
     now: { tag: 'Now', text: 'Advanced ML Engineer at Albertsons Companies · Bengaluru' },
     name: ['Kshitij', 'Chaubey'] as const, // second line renders italic
     claim:
-      'I build machine learning that helps businesses make better decisions, from predictive models and experiments to the data pipelines and AI agents behind them.',
+      'I build machine learning that helps businesses make better decisions, from predictive models and AI agents to the data pipelines and MLOps behind them.',
     ctas: [
       { label: 'See my work', href: '#experience', primary: true },
       { label: 'Résumé', href: '#resume', primary: false },
@@ -21,9 +21,9 @@ export const profile = {
     // What I do, at a glance: broad areas rather than project specifics.
     focus: [
       { title: 'Machine learning', text: 'Models that predict, rank and decide' },
-      { title: 'Causal inference', text: 'Measuring what actually works' },
+      { title: 'Agentic AI', text: 'LLM agents that plan, act and use tools' },
       { title: 'Data engineering', text: 'Pipelines that hold up at scale' },
-      { title: 'Applied AI', text: 'LLM tools and agents for real teams' },
+      { title: 'MLOps', text: 'Shipping models and keeping them healthy' },
     ],
     // Caption for the 3D point cloud beside the name.
     sceneCaption: 'Raw data, settling into structure',

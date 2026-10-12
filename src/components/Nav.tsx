@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { LazyMotion, domAnimation, m, useReducedMotion, useScroll } from 'motion/react'
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react'
+import { usePageProgress } from '../lib/useScrollProgress'
 import { nav, profile } from '../content/profile'
 
 const items = nav.filter((n) => !n.hidden)
@@ -9,7 +10,7 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [active, setActive] = useState<string | null>(null)
   const reduceMotion = useReducedMotion()
-  const { scrollYProgress } = useScroll()
+  const scrollYProgress = usePageProgress()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD)

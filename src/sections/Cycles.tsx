@@ -4,7 +4,6 @@ import {
   domAnimation,
   useMotionValue,
   useReducedMotion,
-  useScroll,
   useTransform,
   type MotionValue,
 } from 'motion/react'
@@ -13,6 +12,7 @@ import Container from '../components/Container'
 import CycleRing, { SWEEP_FROM, SWEEP_TO, arcProgressAt } from '../components/CycleRing'
 import SectionHeader from '../components/SectionHeader'
 import { useMediaQuery } from '../lib/useMediaQuery'
+import { useElementProgress } from '../lib/useScrollProgress'
 
 // Most recent cycle first in the list; the ring stays chronological.
 const roles = [...experience].reverse()
@@ -33,15 +33,12 @@ export default function Cycles() {
   const entryProgress: Record<string, MotionValue<number>> = {}
   for (const c of experience) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    entryProgress[c.id] = useScroll({
-      target: entryRefs.current[c.id],
-      offset: ['start 0.7', 'end 0.45'],
-    }).scrollYProgress
+    entryProgress[c.id] = useElementProgress(entryRefs.current[c.id], 0.7, 0.45)
   }
 
   // Smaller screens: the ring sits above the list, so one sweep runs back in
   // time (today → 2018) as the ring itself scrolls through view.
-  const { scrollYProgress: ringDraw } = useScroll({ target: ringRef, offset: ['start 0.9', 'end 0.45'] })
+  const ringDraw = useElementProgress(ringRef, 0.9, 0.45)
   const sweep = useTransform(ringDraw, (p) => SWEEP_TO - p * (SWEEP_TO - SWEEP_FROM))
   const sweepProgress: Record<string, MotionValue<number>> = {}
   for (const c of experience) {
@@ -55,10 +52,11 @@ export default function Cycles() {
     experience.map((c) => [c.id, reduceMotion ? full : isDesktop ? entryProgress[c.id] : sweepProgress[c.id]]),
   )
 
-  const { scrollYProgress: sectionPass } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
-  const scrollRotate = useTransform(sectionPass, [0, 1], [0, -30])
+  // The ring turns as the section scrolls past: a little less on phones.
+  const sectionPass = useElementProgress(sectionRef, 1, 0)
+  const scrollRotate = useTransform(sectionPass, [0, 1], [0, isMobile ? -20 : -30])
   const noRotate = useMotionValue(0)
-  const rotate = reduceMotion || isMobile ? noRotate : scrollRotate
+  const rotate = reduceMotion ? noRotate : scrollRotate
 
   const [hovered, setHovered] = useState<string | null>(null)
   // The role whose arc is mid-draw is tinted, so list and ring move together.

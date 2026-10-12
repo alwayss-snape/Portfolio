@@ -11,8 +11,13 @@ import ClusterExtras, { type Levels } from './ClusterExtras'
 
 const DIM = 0.55 // how far inactive clusters fade toward the fog
 const MAX_DELAY = 0.35 // points settle at staggered times
-const FORM_SECONDS = 2.6 // noise → clusters on first load
+const FORM_SECONDS = 3 // noise → clusters on first load
+const FORM_DELAY = 0.5 // starts once the canvas has begun fading in
 const SPIN = 0.05 // idle yaw, radians per second
+// Touch screens have no pointer to follow, so the cloud turns faster and
+// drifts gently on its own; otherwise it looks frozen on a phone.
+const TOUCH_SPIN = 0.2
+const touchOnly = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
 const BASE_PITCH = 0.28
 
 // Seeded so the cloud looks the same on every visit.
@@ -153,6 +158,10 @@ export default function PointCloud({ position, scale, count, still, active, mobi
     [still, colors],
   )
   const spin = useRef({ yaw: 0.6, amount: 1 })
+  // Formation is timed from the first frame actually drawn, not from when the
+  // renderer was created: on phones, loading and shader compilation can take
+  // a few seconds, and the gathering used to finish before anyone saw it.
+  const firstFrame = useRef<number | null>(null)
   const tmp = useMemo(() => new THREE.Vector3(), [])
 
   // Reduced motion: no easing, so redraw the single frame whenever the highlight changes.
@@ -174,7 +183,9 @@ export default function PointCloud({ position, scale, count, still, active, mobi
     if (!still) {
       const t = state.clock.elapsedTime
       m.uniforms.uTime.value = t
-      m.uniforms.uForm.value = Math.min(1, t / FORM_SECONDS)
+      firstFrame.current ??= t
+      const formT = t - firstFrame.current - FORM_DELAY
+      m.uniforms.uForm.value = Math.min(1, Math.max(0, formT / FORM_SECONDS))
 
       // Ease each cluster toward its target level.
       const target = levelsFor(active)
@@ -198,10 +209,11 @@ export default function PointCloud({ position, scale, count, still, active, mobi
       }
       if (!drag.active) drag.pitch = THREE.MathUtils.damp(drag.pitch, 0, 3, delta)
       s.amount = THREE.MathUtils.damp(s.amount, drag.active ? 0 : 1, 1.5, delta)
-      s.yaw += delta * SPIN * s.amount
+      s.yaw += delta * (touchOnly ? TOUCH_SPIN : SPIN) * s.amount
 
       const yaw = s.yaw + drag.yaw + sceneInput.pointer.x * 0.35 * s.amount + sceneInput.scroll * 1.2
-      const pitch = BASE_PITCH + drag.pitch + sceneInput.pointer.y * 0.18 * s.amount
+      const drift = touchOnly ? Math.sin(t * 0.35) * 0.16 : 0
+      const pitch = BASE_PITCH + drag.pitch + drift + sceneInput.pointer.y * 0.18 * s.amount
       const k = drag.active ? 14 : 3
       g.rotation.y = THREE.MathUtils.damp(g.rotation.y, yaw, k, delta)
       g.rotation.x = THREE.MathUtils.damp(g.rotation.x, THREE.MathUtils.clamp(pitch, -0.6, 1.1), k, delta)

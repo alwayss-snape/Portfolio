@@ -5,7 +5,7 @@ import SectionHeader from '../components/SectionHeader'
 
 export default function Education() {
   return (
-    <section id="education" aria-labelledby="education-title" className="scroll-mt-16 py-14 sm:py-20">
+    <section id="education" aria-labelledby="education-title" className="scroll-mt-20 py-14 sm:py-20">
       <Container>
         <SectionHeader label={educationIntro.label} title={educationIntro.title} headingId="education-title" />
         <Reveal delay={0.08}>

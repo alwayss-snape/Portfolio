@@ -6,7 +6,7 @@ import StackIcon from '../components/StackIcon'
 
 export default function Stack() {
   return (
-    <section id="stack" aria-labelledby="stack-title" className="scroll-mt-16 py-14 sm:py-20">
+    <section id="stack" aria-labelledby="stack-title" className="scroll-mt-20 py-14 sm:py-20">
       <Container>
         <SectionHeader label={stackIntro.label} title={stackIntro.title} headingId="stack-title" />
         <Reveal delay={0.08}>

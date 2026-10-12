@@ -5,7 +5,7 @@ import SectionHeader from '../components/SectionHeader'
 
 export default function Certifications() {
   return (
-    <section id="certifications" aria-labelledby="certifications-title" className="scroll-mt-16 py-14 sm:py-20">
+    <section id="certifications" aria-labelledby="certifications-title" className="scroll-mt-20 py-14 sm:py-20">
       <Container>
         <SectionHeader label={certificationsIntro.label} title={certificationsIntro.title} headingId="certifications-title" />
         <Reveal delay={0.08}>

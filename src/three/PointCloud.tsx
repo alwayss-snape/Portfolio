@@ -2,16 +2,14 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { cssColor, sceneInput } from './sceneInput'
+import { BOX, CLUSTERS, SPREAD, centres, shapes, vividColors } from './clusterLayout'
+import ClusterExtras, { type Levels } from './ClusterExtras'
 
 // A 3D scatter plot: points start as uniform noise and settle into four
 // clusters, one per focus area in the hero, each in its category colour.
 // The active cluster grows a little brighter and the rest fade into the fog.
 
-const CLUSTERS = 4
 const DIM = 0.55 // how far inactive clusters fade toward the fog
-const SPREAD = 0.36 // cluster standard deviation
-const RADIUS = 1.85 // how far cluster centres sit from the origin
-const BOX = 2.4 // half-size of the axis box and the noise volume
 const MAX_DELAY = 0.35 // points settle at staggered times
 const FORM_SECONDS = 2.6 // noise → clusters on first load
 const SPIN = 0.05 // idle yaw, radians per second
@@ -30,14 +28,6 @@ function gauss(rand: () => number) {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand())
 }
 
-// Cluster centres spread evenly over a sphere (Fibonacci lattice).
-const centres = Array.from({ length: CLUSTERS }, (_, i) => {
-  const y = 1 - ((i + 0.5) / CLUSTERS) * 2
-  const r = Math.sqrt(1 - y * y)
-  const theta = i * Math.PI * (3 - Math.sqrt(5))
-  return new THREE.Vector3(Math.cos(theta) * r, y * 0.85, Math.sin(theta) * r).multiplyScalar(RADIUS)
-})
-
 function buildCloud(count: number) {
   const rand = rng(42)
   const target = new Float32Array(count * 3)
@@ -47,7 +37,8 @@ function buildCloud(count: number) {
   for (let i = 0; i < count; i++) {
     const k = i % CLUSTERS
     const c = centres[k]
-    target.set([c.x + gauss(rand) * SPREAD, c.y + gauss(rand) * SPREAD, c.z + gauss(rand) * SPREAD], i * 3)
+    const [sx, sy, sz] = shapes[k]
+    target.set([c.x + gauss(rand) * SPREAD * sx, c.y + gauss(rand) * SPREAD * sy, c.z + gauss(rand) * SPREAD * sz], i * 3)
     start.set([(rand() * 2 - 1) * BOX, (rand() * 2 - 1) * BOX, (rand() * 2 - 1) * BOX], i * 3)
     delay[i] = rand() * MAX_DELAY
     cluster[i] = k
@@ -132,23 +123,23 @@ type Props = {
   count: number
   still: boolean // reduced motion: fully formed, no spin, highlight changes snap
   active: number | null // focus area the visitor is pointing at
+  mobile: boolean
 }
 
 const levelsFor = (active: number | null) => Array.from({ length: CLUSTERS }, (_, i) => (i === active ? 1 : 0))
-const CAT_TOKENS: [string, string][] = [
-  ['--cat-ml', '#a4492a'],
-  ['--cat-agentic', '#a8782a'],
-  ['--cat-data', '#4f6b84'],
-  ['--cat-mlops', '#3f6b4f'],
-]
 
-export default function PointCloud({ position, scale, count, still, active }: Props) {
+export default function PointCloud({ position, scale, count, still, active, mobile }: Props) {
   const group = useRef<THREE.Group>(null)
   const material = useRef<THREE.ShaderMaterial>(null)
   const invalidate = useThree((s) => s.invalidate)
   const cloudGeo = useMemo(() => buildCloud(count), [count])
   const axesGeo = useMemo(() => buildAxes(), [])
   const hairline = useMemo(() => new THREE.Color(cssColor('--muted', '#6b766d')), [])
+  const colors = useMemo(() => vividColors(), [])
+  // Eased highlight state, shared with the extras so everything dims together.
+  const levels = useRef<Levels>({ lit: new THREE.Vector4(), dim: 0 })
+  useEffect(() => () => cloudGeo.dispose(), [cloudGeo])
+  useEffect(() => () => axesGeo.dispose(), [axesGeo])
   const uniforms = useMemo(
     () => ({
       uForm: { value: still ? 1 : 0 },
@@ -156,10 +147,10 @@ export default function PointCloud({ position, scale, count, still, active }: Pr
       uSize: { value: 46 * Math.min(window.devicePixelRatio, 2) },
       uLevel: { value: new THREE.Vector4(...levelsFor(null)) },
       uDim: { value: 0 },
-      uCats: { value: CAT_TOKENS.map(([name, fallback]) => new THREE.Color(cssColor(name, fallback))) },
+      uCats: { value: colors },
       uFog: { value: new THREE.Color(cssColor('--fog', '#d6dad2')) },
     }),
-    [still],
+    [still, colors],
   )
   const spin = useRef({ yaw: 0.6, amount: 1 })
   const tmp = useMemo(() => new THREE.Vector3(), [])
@@ -170,6 +161,8 @@ export default function PointCloud({ position, scale, count, still, active }: Pr
     if (!still || !m) return
     m.uniforms.uLevel.value.set(...levelsFor(active))
     m.uniforms.uDim.value = active === null ? 0 : DIM
+    levels.current.lit.copy(m.uniforms.uLevel.value)
+    levels.current.dim = m.uniforms.uDim.value
     invalidate()
   }, [active, still, invalidate])
 
@@ -193,6 +186,8 @@ export default function PointCloud({ position, scale, count, still, active }: Pr
         THREE.MathUtils.damp(lv.w, target[3], 6, delta),
       )
       m.uniforms.uDim.value = THREE.MathUtils.damp(m.uniforms.uDim.value, active === null ? 0 : DIM, 6, delta)
+      levels.current.lit.copy(lv)
+      levels.current.dim = m.uniforms.uDim.value
 
       // Dragging pauses the idle spin; on release the turn is kept and the spin eases back in.
       const drag = sceneInput.drag
@@ -241,6 +236,7 @@ export default function PointCloud({ position, scale, count, still, active }: Pr
           depthWrite={false}
         />
       </points>
+      <ClusterExtras colors={colors} levels={levels} still={still} mobile={mobile} />
     </group>
   )
 }

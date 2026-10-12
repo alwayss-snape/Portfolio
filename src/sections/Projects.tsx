@@ -42,7 +42,7 @@ export default function Projects() {
   }
 
   return (
-    <section ref={sectionRef} id="projects" aria-labelledby="projects-title" className="scroll-mt-16 py-14 sm:py-20">
+    <section ref={sectionRef} id="projects" aria-labelledby="projects-title" className="scroll-mt-20 py-14 sm:py-20">
       <Container>
         <SectionHeader
           label={projectsIntro.label}
@@ -151,6 +151,19 @@ function ProjectDialog({ openId, list, onNavigate, onClose }: DialogProps) {
 
   const step = (dir: number) => onNavigate(list[(index + dir + list.length) % list.length].id)
 
+  // ← and → step through projects while the panel is open.
+  const stepRef = useRef(step)
+  stepRef.current = step
+  useEffect(() => {
+    if (!project) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') stepRef.current(-1)
+      if (e.key === 'ArrowRight') stepRef.current(1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [project])
+
   return (
     <dialog
       ref={ref}
@@ -162,14 +175,14 @@ function ProjectDialog({ openId, list, onNavigate, onClose }: DialogProps) {
       {project && (
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-hairline px-5 py-3 font-mono text-[12px] uppercase tracking-[1px] sm:px-8">
-            <div className="flex gap-1">
-              <button type="button" onClick={() => step(-1)} aria-label={projectsIntro.prev} className="px-2 py-2 hover:text-rust">←</button>
-              <button type="button" onClick={() => step(1)} aria-label={projectsIntro.next} className="px-2 py-2 hover:text-rust">→</button>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => step(-1)} aria-label={projectsIntro.prev} className="grid size-10 place-items-center border border-hairline transition-colors hover:border-ink hover:text-rust">←</button>
+              <button type="button" onClick={() => step(1)} aria-label={projectsIntro.next} className="grid size-10 place-items-center border border-hairline transition-colors hover:border-ink hover:text-rust">→</button>
               <span className="self-center pl-2 text-muted">
                 {index + 1} / {list.length}
               </span>
             </div>
-            <button type="button" onClick={() => ref.current?.close()} className="px-2 py-2 hover:text-rust">
+            <button type="button" autoFocus onClick={() => ref.current?.close()} className="min-h-10 px-2 py-2 hover:text-rust">
               {projectsIntro.close} ✕
             </button>
           </div>

@@ -103,14 +103,15 @@ export default function Hero() {
     return best
   }
   const onSurfaceDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (reduceMotion) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragStart.current = { x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch' }
-    sceneInput.drag.active = true
+    // Reduced motion: a press can still click a cluster, but never turns the cloud.
+    sceneInput.drag.active = !reduceMotion
   }
   const onSurfaceMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const start = dragStart.current
     if (start) {
+      if (reduceMotion) return
       sceneInput.drag.yaw = (e.clientX - start.x) * 0.008
       sceneInput.drag.pitch = start.touch ? 0 : (e.clientY - start.y) * 0.006
       return
@@ -149,8 +150,10 @@ export default function Hero() {
         </div>
       )}
 
-      <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 pb-8 pt-[43svh] sm:px-8 md:pt-28 lg:px-16 lg:pb-12">
-        <div className="md:my-auto md:max-w-[640px]">
+      {mountScene && live && <ClusterLabels highlight={highlight} />}
+
+      <div className="relative mx-auto flex w-full max-w-[1680px] flex-1 flex-col px-4 pb-8 pt-[40svh] sm:px-8 lg:px-16 lg:pb-10 lg:pt-20 2xl:px-20">
+        <div className="lg:my-auto lg:max-w-[min(640px,48%)]">
           <p className="font-mono text-[12px] tracking-[1px] text-ink-2 sm:text-[13px]">
             <span aria-hidden className="mr-2.5 inline-block size-2 rounded-full bg-rust align-middle shadow-[0_0_0_4px_var(--rust-glow)]" />
             <span className="font-medium text-ink">{hero.now.tag}</span> · {hero.now.text}
@@ -186,7 +189,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-hairline md:mt-10 md:grid-cols-4">
+        <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-hairline lg:mt-8 lg:grid-cols-4">
           {hero.focus.map((f, i) => {
             const lit = highlight === i
             const cat = categories[i].id
@@ -232,35 +235,92 @@ export default function Hero() {
             )
           })}
         </ul>
+        {mountScene && live && (
+          <div
+            aria-hidden
+            onPointerDown={onSurfaceDown}
+            onPointerMove={onSurfaceMove}
+            onPointerUp={onSurfaceUp}
+            onPointerCancel={() => {
+              dragStart.current = null
+              sceneInput.drag.active = false
+            }}
+            onPointerLeave={() => setCloudHover(null)}
+            className={`absolute bottom-[190px] left-1/2 right-0 top-16 hidden touch-pan-y lg:block ${
+              cloudHover !== null ? 'cursor-pointer' : reduceMotion ? '' : 'cursor-grab active:cursor-grabbing'
+            }`}
+          />
+        )}
+        {mountScene && (
+          <p
+            aria-hidden
+            className={`pointer-events-none absolute bottom-[170px] right-16 hidden max-w-[260px] text-right font-mono text-[11px] leading-relaxed tracking-[1px] text-muted transition-opacity duration-[1200ms] lg:block 2xl:right-20 ${
+              live ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {hero.sceneCaption}
+          </p>
+        )}
       </div>
 
-      {mountScene && live && (
-        <div
-          aria-hidden
-          onPointerDown={onSurfaceDown}
-          onPointerMove={onSurfaceMove}
-          onPointerUp={onSurfaceUp}
-          onPointerCancel={() => {
-            dragStart.current = null
-            sceneInput.drag.active = false
-          }}
-          onPointerLeave={() => setCloudHover(null)}
-          className={`absolute bottom-[200px] left-[52%] right-0 top-16 hidden touch-pan-y lg:block ${
-            cloudHover !== null ? 'cursor-pointer' : reduceMotion ? '' : 'cursor-grab active:cursor-grabbing'
-          }`}
-        />
-      )}
-
-      {mountScene && (
-        <p
-          aria-hidden
-          className={`pointer-events-none absolute max-w-[240px] max-md:hidden text-right font-mono text-[11px] leading-relaxed tracking-[1px] text-muted transition-opacity duration-[1200ms] bottom-[210px] right-8 lg:right-16 ${
-            live ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          {hero.sceneCaption}
-        </p>
-      )}
     </section>
+  )
+}
+
+// Category names that float beside each cluster and follow it as the cloud
+// turns. Positions come from the scene each frame (sceneInput.clusters).
+function ClusterLabels({ highlight }: { highlight: number | null }) {
+  const refs = useRef<(HTMLSpanElement | null)[]>([])
+  useEffect(() => {
+    let frame = 0
+    // Each label sits just outside its cluster, pushed away from the cloud's
+    // centre, so it never lands on a neighbouring cluster.
+    const tick = () => {
+      const cs = sceneInput.clusters
+      const r = sceneInput.clusterRadius
+      if (cs.length) {
+        const mx = cs.reduce((s, c) => s + c.x, 0) / cs.length
+        const my = cs.reduce((s, c) => s + c.y, 0) / cs.length
+        cs.forEach((c, i) => {
+          const el = refs.current[i]
+          if (!el) return
+          const dx = c.x - mx
+          const dy = c.y - my
+          const len = Math.hypot(dx, dy) || 1
+          const x = c.x + (dx / len) * r * 1.2
+          const y = c.y + (dy / len) * r * 1.2
+          // Anchor the label on the side facing the cluster, then keep it on screen.
+          const lw = el.offsetWidth
+          const lh = el.offsetHeight
+          const side = Math.abs(dx) > Math.abs(dy)
+          let left = side ? (dx < 0 ? x - lw : x) : x - lw / 2
+          const top = side ? y - lh / 2 : dy < 0 ? y - lh : y
+          left = Math.max(8, Math.min(left, window.innerWidth - lw - 8))
+          el.style.transform = `translate(${left}px, ${top}px)`
+        })
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    tick()
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0">
+      {categories.map((c, i) => (
+        <span
+          key={c.id}
+          ref={(el) => {
+            refs.current[i] = el
+          }}
+          className="absolute left-0 top-0 whitespace-nowrap bg-[color-mix(in_srgb,var(--fog)_75%,transparent)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[1.5px] transition-opacity duration-500 sm:text-[11px]"
+          style={{
+            color: `var(--cat-${c.id}-ink)`,
+            opacity: highlight === null ? 0.85 : highlight === i ? 1 : 0.3,
+          }}
+        >
+          {c.label}
+        </span>
+      ))}
+    </div>
   )
 }

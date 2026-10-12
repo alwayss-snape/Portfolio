@@ -69,7 +69,7 @@ export default function Cycles() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-      <section ref={sectionRef} id="experience" aria-labelledby="experience-title" className="scroll-mt-16 py-14 sm:py-20">
+      <section ref={sectionRef} id="experience" aria-labelledby="experience-title" className="scroll-mt-20 py-14 sm:py-20">
         <Container>
           <SectionHeader
             label={cyclesIntro.label}

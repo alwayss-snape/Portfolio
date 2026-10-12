@@ -40,7 +40,7 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" aria-labelledby="contact-title" className="scroll-mt-16 pb-20 pt-14 sm:pb-24 sm:pt-20">
+    <section id="contact" aria-labelledby="contact-title" className="scroll-mt-20 pb-20 pt-14 sm:pb-24 sm:pt-20">
       <Container>
         <SectionHeader
           label={contactIntro.label}
@@ -81,7 +81,7 @@ export default function Contact() {
                     <a
                       href={l.href}
                       {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className="border-b border-hairline pb-1 text-ink transition-colors hover:border-rust hover:text-rust"
+                      className="inline-block border-b border-hairline pb-1 pt-3 text-ink transition-colors hover:border-rust hover:text-rust"
                     >
                       {l.label}
                       <span aria-hidden> ↗</span>

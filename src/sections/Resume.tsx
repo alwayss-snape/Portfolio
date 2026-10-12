@@ -6,7 +6,7 @@ import SectionHeader from '../components/SectionHeader'
 
 export default function Resume() {
   return (
-    <section id="resume" aria-labelledby="resume-title" className="scroll-mt-16 py-14 sm:py-20">
+    <section id="resume" aria-labelledby="resume-title" className="scroll-mt-20 py-14 sm:py-20">
       <Container>
         <SectionHeader label={resumeIntro.label} title={resumeIntro.title} headingId="resume-title" />
         <Reveal delay={0.08}>

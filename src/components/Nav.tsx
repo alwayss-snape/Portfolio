@@ -44,7 +44,7 @@ export default function Nav() {
     >
       <nav
         aria-label="Primary"
-        className="relative mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 font-mono text-[12px] sm:px-8 sm:text-[13px] lg:px-16"
+        className="relative mx-auto flex h-16 max-w-[1680px] items-center justify-between px-4 font-mono text-[12px] sm:px-8 sm:text-[13px] lg:px-16 2xl:px-20"
       >
         <a href="#top" className="tracking-[2px] text-ink">
           {profile.wordmark}
@@ -59,7 +59,7 @@ export default function Nav() {
                 <a
                   href={`#${n.id}`}
                   aria-current={isActive ? 'location' : undefined}
-                  className={`transition-colors ${color}`}
+                  className={`-my-3 inline-block py-3 transition-colors ${color}`}
                 >
                   {n.label}
                 </a>

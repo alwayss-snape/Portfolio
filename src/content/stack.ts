@@ -5,7 +5,7 @@ export type StackItem = { name: string; icon: StackIconName }
 export type StackGroup = { heading: string; items: StackItem[] }
 
 export const stackIntro = {
-  label: '03 / Stack',
+  label: '04 / Stack',
   title: 'Instruments',
 }
 

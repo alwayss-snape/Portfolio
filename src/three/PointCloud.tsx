@@ -4,12 +4,10 @@ import * as THREE from 'three'
 import { cssColor, sceneInput } from './sceneInput'
 
 // A 3D scatter plot: points start as uniform noise and settle into four
-// clusters, one per focus area in the hero. The active cluster is lit in
-// the accent and the rest dim; with nothing active, the first glows softly.
+// clusters, one per focus area in the hero, each in its category colour.
+// The active cluster grows a little brighter and the rest fade into the fog.
 
 const CLUSTERS = 4
-const IDLE = 0 // cluster that stays softly lit when nothing is active
-const IDLE_LEVEL = 0.55
 const DIM = 0.55 // how far inactive clusters fade toward the fog
 const SPREAD = 0.36 // cluster standard deviation
 const RADIUS = 1.85 // how far cluster centres sit from the origin
@@ -92,8 +90,10 @@ const vertex = /* glsl */ `
   uniform float uSize;
   uniform vec4 uLevel; // per cluster: 0 = plain, 1 = fully lit
   uniform float uDim; // how much unlit clusters fade
+  uniform vec3 uCats[4]; // category colours, in cluster order
   varying float vLevel;
   varying float vFade;
+  varying vec3 vColor;
   void main() {
     float m = clamp((uForm - aDelay) / (1.0 - ${MAX_DELAY.toFixed(2)}), 0.0, 1.0);
     m = m * m * (3.0 - 2.0 * m);
@@ -104,6 +104,7 @@ const vertex = /* glsl */ `
     gl_Position = projectionMatrix * mv;
     vec4 pick = vec4(1.0) - step(vec4(0.5), abs(vec4(aCluster) - vec4(0.0, 1.0, 2.0, 3.0)));
     vLevel = dot(uLevel, pick);
+    vColor = uCats[0] * pick.x + uCats[1] * pick.y + uCats[2] * pick.z + uCats[3] * pick.w;
     gl_PointSize = uSize * mix(1.0, 1.35, vLevel) / -mv.z;
     // Far points sink into the fog; unlit clusters sink further while one is active.
     vFade = smoothstep(10.5, 14.5, -mv.z) * 0.6 + uDim * (1.0 - vLevel);
@@ -111,18 +112,16 @@ const vertex = /* glsl */ `
 `
 
 const fragment = /* glsl */ `
-  uniform vec3 uInk;
-  uniform vec3 uHot;
   uniform vec3 uFog;
   varying float vLevel;
   varying float vFade;
+  varying vec3 vColor;
   void main() {
     float d = length(gl_PointCoord - 0.5);
     if (d > 0.5) discard;
     float edge = smoothstep(0.5, 0.36, d);
-    vec3 col = mix(uInk, uHot, vLevel);
-    col = mix(col, uFog, clamp(vFade, 0.0, 0.85) * (1.0 - vLevel * 0.6));
-    gl_FragColor = vec4(col, edge * mix(0.75, 0.95, vLevel));
+    vec3 col = mix(vColor, uFog, clamp(vFade, 0.0, 0.85) * (1.0 - vLevel * 0.6));
+    gl_FragColor = vec4(col, edge * mix(0.8, 0.95, vLevel));
     #include <colorspace_fragment>
   }
 `
@@ -135,8 +134,13 @@ type Props = {
   active: number | null // focus area the visitor is pointing at
 }
 
-const levelsFor = (active: number | null) =>
-  Array.from({ length: CLUSTERS }, (_, i) => (active === null ? (i === IDLE ? IDLE_LEVEL : 0) : i === active ? 1 : 0))
+const levelsFor = (active: number | null) => Array.from({ length: CLUSTERS }, (_, i) => (i === active ? 1 : 0))
+const CAT_TOKENS: [string, string][] = [
+  ['--cat-ml', '#a4492a'],
+  ['--cat-agentic', '#a8782a'],
+  ['--cat-data', '#4f6b84'],
+  ['--cat-mlops', '#3f6b4f'],
+]
 
 export default function PointCloud({ position, scale, count, still, active }: Props) {
   const group = useRef<THREE.Group>(null)
@@ -152,8 +156,7 @@ export default function PointCloud({ position, scale, count, still, active }: Pr
       uSize: { value: 46 * Math.min(window.devicePixelRatio, 2) },
       uLevel: { value: new THREE.Vector4(...levelsFor(null)) },
       uDim: { value: 0 },
-      uInk: { value: new THREE.Color(cssColor('--moss', '#4a5a4e')) },
-      uHot: { value: new THREE.Color(cssColor('--rust', '#a4492a')) },
+      uCats: { value: CAT_TOKENS.map(([name, fallback]) => new THREE.Color(cssColor(name, fallback))) },
       uFog: { value: new THREE.Color(cssColor('--fog', '#d6dad2')) },
     }),
     [still],

@@ -4,7 +4,7 @@
 export type Certification = { name: string; issuer?: string; year?: string; href?: string }
 
 export const certificationsIntro = {
-  label: '04 / Certifications',
+  label: '05 / Certifications',
   title: 'Certifications',
 }
 

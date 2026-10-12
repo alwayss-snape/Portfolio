@@ -23,9 +23,9 @@ The full spec is `PORTFOLIO_BUILD_BRIEF.md`. Read it before any milestone work; 
 ## Where things live
 
 - **All colours and fonts:** `src/theme/tokens.css` (single source of truth; no hard-coded hex values in components, except the 3D scene's material colours which should mirror the tokens).
-- **All copy:** `src/content/` (`profile.ts`, `experience.ts`, `stack.ts`, `certifications.ts`, `education.ts`, `links.ts`, `resume.ts`). Components never contain copy.
+- **All copy:** `src/content/` (`profile.ts`, `experience.ts`, `projects.ts`, `projectDetails.ts`, `stack.ts`, `certifications.ts`, `education.ts`, `links.ts`, `resume.ts`). Components never contain copy.
 - Sections: `src/sections/`; shared components: `src/components/`; 3D: `src/three/`.
-- `projects` exists in the content model and nav but is hidden in v1.
+- Projects (after Work Experience): cards from `projects.ts`; long write-ups in `projectDetails.ts` are loaded on demand to keep the initial bundle small. Hash links: `#projects/<category>` filters, `#project/<id>` opens one. Four categories (ml, agentic, data, mlops) match the hero's focus areas and point-cloud clusters, with colours `--cat-*` (and `--cat-*-ink` for text) in tokens.css. Only verified figures from the project bank; internal names generalised.
 
 ## Design constraints
 

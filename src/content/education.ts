@@ -3,7 +3,7 @@
 export type Education = { school: string; degree: string; dates: string; notes: string[] }
 
 export const educationIntro = {
-  label: '06 / Education',
+  label: '07 / Education',
   title: 'Education',
 }
 

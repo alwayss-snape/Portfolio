@@ -3,6 +3,7 @@ import Nav from './components/Nav'
 import Hero from './sections/Hero'
 import About from './sections/About'
 import Cycles from './sections/Cycles'
+import Projects from './sections/Projects'
 import Stack from './sections/Stack'
 import Certifications from './sections/Certifications'
 import Resume from './sections/Resume'
@@ -24,6 +25,7 @@ export default function App() {
       <main id="main">
         <About />
         <Cycles />
+        <Projects />
         <Stack />
         <Certifications />
         <Resume />

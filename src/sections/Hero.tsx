@@ -3,6 +3,8 @@ import { useReducedMotion } from 'motion/react'
 import { profile } from '../content/profile'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { sceneInput } from '../three/sceneInput'
+import { categories } from '../content/projects'
+import { goTo, projectsHref } from '../lib/projectRoute'
 
 const DataScene = lazy(() => import('../three/DataScene'))
 
@@ -27,12 +29,10 @@ export default function Hero() {
   const [mountScene, setMountScene] = useState(false)
   const [live, setLive] = useState(false)
   const [rendering, setRendering] = useState(true)
-  // Which focus area is lit: hover/keyboard focus wins, then a hover on the
-  // cloud itself, then a tap (phones) that stays until tapped again.
+  // Which focus area is lit: hover/keyboard focus on a tile, else a hover on the cloud.
   const [pointed, setPointed] = useState<number | null>(null)
   const [cloudHover, setCloudHover] = useState<number | null>(null)
-  const [pinned, setPinned] = useState<number | null>(null)
-  const highlight = pointed ?? cloudHover ?? pinned
+  const highlight = pointed ?? cloudHover
   const dragStart = useRef<{ x: number; y: number; touch: boolean } | null>(null)
 
   // Load the 3D chunk only after the page is idle, so it never competes with the LCP.
@@ -117,9 +117,16 @@ export default function Hero() {
     }
     if (e.pointerType === 'mouse') setCloudHover(clusterAt(e))
   }
-  const onSurfaceUp = () => {
+  // A press that barely moves is a click: it opens that cluster's projects.
+  const onSurfaceUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = dragStart.current
     dragStart.current = null
     sceneInput.drag.active = false
+    if (!start || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 5) return
+    sceneInput.drag.yaw = 0
+    sceneInput.drag.pitch = 0
+    const hit = clusterAt(e)
+    if (hit !== null) goTo(projectsHref(categories[hit].id))
   }
 
   return (
@@ -182,34 +189,45 @@ export default function Hero() {
         <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-2 border-t border-hairline md:mt-10 md:grid-cols-4">
           {hero.focus.map((f, i) => {
             const lit = highlight === i
+            const cat = categories[i].id
             return (
               <li key={f.title} data-lit={lit || undefined} className="relative">
-                {/* The divider above a lit item turns rust, like its cluster. */}
+                {/* The divider above a lit item takes its cluster's colour. */}
                 <span
                   aria-hidden
-                  className={`absolute inset-x-0 -top-px h-0.5 origin-left bg-rust transition-transform duration-500 ${
+                  className={`absolute inset-x-0 -top-px h-0.5 origin-left transition-transform duration-500 ${
                     lit ? 'scale-x-100' : 'scale-x-0'
                   }`}
+                  style={{ background: `var(--cat-${cat})` }}
                 />
-                <button
-                  type="button"
-                  aria-pressed={pinned === i}
+                <a
+                  href={projectsHref(cat)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    goTo(projectsHref(cat))
+                  }}
                   onPointerEnter={(e) => e.pointerType === 'mouse' && setPointed(i)}
                   onPointerLeave={(e) => e.pointerType === 'mouse' && setPointed(null)}
                   onFocus={(e) => e.currentTarget.matches(':focus-visible') && setPointed(i)}
                   onBlur={() => setPointed(null)}
-                  onClick={() => setPinned((p) => (p === i ? null : i))}
-                  className="w-full cursor-default pb-1 pt-5 text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rust"
+                  className="group block pb-1 pt-5 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rust"
                 >
-                  <span
-                    className={`block font-serif text-[24px] leading-tight transition-colors duration-500 sm:text-[30px] ${
-                      lit ? 'text-rust' : 'text-ink'
-                    }`}
-                  >
-                    {f.title}
+                  <span className="flex items-center gap-2.5">
+                    <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: `var(--cat-${cat})` }} />
+                    <span
+                      className="font-serif text-[24px] leading-tight text-ink transition-colors duration-500 sm:text-[30px]"
+                      style={lit ? { color: `var(--cat-${cat}-ink)` } : undefined}
+                    >
+                      {f.title}
+                    </span>
                   </span>
-                  <span className="mt-1.5 block text-[13px] leading-snug text-ink-2 sm:text-[14px]">{f.text}</span>
-                </button>
+                  <span className="mt-1.5 block text-[13px] leading-snug text-ink-2 sm:text-[14px]">
+                    {f.text}
+                    <span aria-hidden className={`ml-1.5 inline-block transition-opacity duration-300 ${lit ? 'opacity-100' : 'opacity-0'}`}>
+                      →
+                    </span>
+                  </span>
+                </a>
               </li>
             )
           })}
@@ -222,10 +240,13 @@ export default function Hero() {
           onPointerDown={onSurfaceDown}
           onPointerMove={onSurfaceMove}
           onPointerUp={onSurfaceUp}
-          onPointerCancel={onSurfaceUp}
+          onPointerCancel={() => {
+            dragStart.current = null
+            sceneInput.drag.active = false
+          }}
           onPointerLeave={() => setCloudHover(null)}
           className={`absolute bottom-[200px] left-[52%] right-0 top-16 hidden touch-pan-y lg:block ${
-            reduceMotion ? '' : 'cursor-grab active:cursor-grabbing'
+            cloudHover !== null ? 'cursor-pointer' : reduceMotion ? '' : 'cursor-grab active:cursor-grabbing'
           }`}
         />
       )}

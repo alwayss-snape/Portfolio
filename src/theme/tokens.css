@@ -22,6 +22,16 @@
   --hairline: #b4bbb1;   /* dividers, the base ring */
   --rust: #a4492a;       /* the single accent */
 
+  /* Focus-area categories: dot/cluster colour, plus a darker shade for text (AA on fog). */
+  --cat-ml: #a4492a;
+  --cat-ml-ink: #8f3c20;
+  --cat-agentic: #a8782a;
+  --cat-agentic-ink: #74501a;
+  --cat-data: #4f6b84;
+  --cat-data-ink: #3d566c;
+  --cat-mlops: #3f6b4f;
+  --cat-mlops-ink: #34593f;
+
   /* Font stacks */
   --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;

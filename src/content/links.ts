@@ -3,7 +3,7 @@
 export type ContactLink = { label: string; href: string; external?: boolean }
 
 export const contactIntro = {
-  label: '07 / Contact',
+  label: '08 / Contact',
   title: "Let's talk",
   sub: 'Open to conversations about machine learning, agentic AI and data roles. Email is the quickest way to reach me.',
   emailLabel: 'Email',

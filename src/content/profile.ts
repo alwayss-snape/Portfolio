@@ -26,7 +26,7 @@ export const profile = {
       { title: 'MLOps', text: 'Shipping models and keeping them healthy' },
     ],
     // Caption for the 3D point cloud beside the name.
-    sceneCaption: 'One cluster per focus area. Hover to explore, drag to turn.',
+    sceneCaption: 'One cluster per focus area. Click one to see its projects, or drag to turn.',
   },
 
   about: {
@@ -45,13 +45,13 @@ export type NavItem = {
   wide?: boolean // only shown from the sm breakpoint up, so the bar fits a phone
 }
 
-// Order matches the page. `projects` is reserved for later and hidden in v1.
+// Order matches the page. `wide` items are hidden on phones so the bar fits.
 export const nav: NavItem[] = [
-  { id: 'about', label: 'about' },
+  { id: 'about', label: 'about', wide: true },
   { id: 'experience', label: 'work' },
-  { id: 'stack', label: 'stack' },
+  { id: 'projects', label: 'projects' },
+  { id: 'stack', label: 'stack', wide: true },
   { id: 'certifications', label: 'certs', wide: true },
-  { id: 'projects', label: 'projects', hidden: true },
   { id: 'resume', label: 'résumé' },
   { id: 'education', label: 'education', wide: true },
   { id: 'contact', label: 'contact' },

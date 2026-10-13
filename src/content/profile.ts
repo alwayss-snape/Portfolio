@@ -9,7 +9,7 @@ export const profile = {
   footer: '© 2026 Kshitij Chaubey · Bengaluru',
 
   hero: {
-    now: { tag: 'Now', text: 'Advanced ML Engineer at Albertsons Companies · Bengaluru' },
+    now: { text: 'Advanced ML Engineer at Albertsons Companies · Bengaluru' },
     name: ['Kshitij', 'Chaubey'] as const, // second line renders italic
     claim:
       'I build machine learning that helps businesses make better decisions, from predictive models and AI agents to the data pipelines and MLOps behind them.',

@@ -159,7 +159,7 @@ export default function Hero() {
         <div className="my-auto lg:max-w-[min(640px,48%)]">
           <p className="font-mono text-[12px] tracking-[1px] text-ink-2 sm:text-[13px]">
             <span aria-hidden className="mr-2.5 inline-block size-2 rounded-full bg-rust align-middle shadow-[0_0_0_4px_var(--rust-glow)]" />
-            <span className="font-medium text-ink">{hero.now.tag}</span> · {hero.now.text}
+            {hero.now.text}
           </p>
           <h1
             className="mt-6 font-serif font-normal text-ink"
